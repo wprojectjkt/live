@@ -1,14 +1,15 @@
 const chatBox = document.getElementById("chatBox");
 const chatInput = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
+const pinned = document.getElementById("pinned");
+const giftOverlay = document.getElementById("giftOverlay");
 
-// Random warna username
 const colors = ["text-blue-400", "text-green-400", "text-pink-400", "text-yellow-400"];
 const randomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-function addMessage(user, text, self = false) {
+function addMessage(user, text, self = false, isAdmin = false) {
   const wrapper = document.createElement("div");
-  wrapper.className = "flex items-start space-x-2 text-sm";
+  wrapper.className = "flex items-start space-x-2 text-sm animate-fade-in";
 
   const avatar = document.createElement("div");
   avatar.className = "w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-[10px]";
@@ -20,8 +21,8 @@ function addMessage(user, text, self = false) {
   } text-white`;
 
   const username = document.createElement("span");
-  username.className = `block text-[10px] font-bold ${randomColor()}`;
-  username.textContent = user;
+  username.className = `block text-[10px] font-bold ${isAdmin ? "text-red-400" : randomColor()}`;
+  username.textContent = isAdmin ? user + " (Admin)" : user;
 
   const message = document.createElement("span");
   message.textContent = text;
@@ -42,11 +43,33 @@ sendBtn.onclick = () => {
   }
 };
 
-// Dummy simulasi pesan orang lain
+// Gift button
+document.querySelectorAll(".giftBtn").forEach(btn => {
+  btn.onclick = () => {
+    showGift("You", btn.textContent);
+  };
+});
+
+function showGift(user, emoji) {
+  const gift = document.createElement("div");
+  gift.className = "bg-gray-800 bg-opacity-70 px-3 py-1 rounded-full text-white animate-bounce";
+  gift.textContent = `${user} mengirim ${emoji}`;
+  giftOverlay.appendChild(gift);
+
+  setTimeout(() => gift.remove(), 3000);
+}
+
+// Pinned message (contoh)
+setTimeout(() => {
+  pinned.textContent = "📢 Jangan lupa follow & share stream ini!";
+  pinned.classList.remove("hidden");
+}, 2000);
+
+// Dummy chat simulasi
 setInterval(() => {
   const fakeUsers = ["Alice", "Bob", "Charlie", "Dewi"];
-  const fakeTexts = ["Halo!", "Mantap!", "🔥🔥🔥", "Lanjut terus!"];
+  const fakeTexts = ["Halo!", "Mantap!", "🔥🔥🔥", "Bagus banget!", "Setuju 👍"];
   const u = fakeUsers[Math.floor(Math.random() * fakeUsers.length)];
   const t = fakeTexts[Math.floor(Math.random() * fakeTexts.length)];
-  addMessage(u, t);
+  addMessage(u, t, false, Math.random() > 0.8); // 20% admin
 }, 5000);
