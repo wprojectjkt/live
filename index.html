@@ -33,14 +33,21 @@
     <div class="relative flex-1 flex items-center justify-center bg-black">
       <video id="video" class="w-full h-full object-contain bg-black" controls autoplay></video>
       
+      <!-- Gradient Overlay -->
+      <div class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-black to-transparent flex items-end justify-between px-4 py-2">
+        <!-- Buttons -->
+        <div class="flex space-x-2">
+          <button class="px-3 py-1 bg-red-500 rounded-full text-sm hover:bg-red-600">❤️ Follow</button>
+          <button class="px-3 py-1 bg-blue-500 rounded-full text-sm hover:bg-blue-600">🔗 Share</button>
+        </div>
+        <!-- Status -->
+        <p id="status" class="text-xs text-gray-300">Checking stream...</p>
+      </div>
+
       <!-- Counter overlay -->
       <div class="absolute top-4 left-4 bg-gray-800 bg-opacity-70 px-3 py-1 rounded-full text-sm">
         👥 <span id="viewerCount">0</span> penonton
       </div>
-
-      <p id="status" class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-gray-300">
-        Checking stream...
-      </p>
     </div>
 
     <!-- Chat Section -->
