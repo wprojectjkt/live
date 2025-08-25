@@ -1,27 +1,42 @@
 const API_BASE = "https://bot.wproject.web.id/api";
-const STREAM_URL = "https://stream.wproject.web.id/hls/live.m3u8"; // ganti sesuai setup
 const DEVICE_ID = btoa(navigator.userAgent + navigator.language + screen.width + "x" + screen.height);
 
-function validateToken() {
-  const input = document.getElementById("tokenInput").value.trim();
-  const status = document.getElementById("status");
+// Ambil token dari URL (?token=xxx)
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromURL = urlParams.get("token");
 
-  if (!input.includes("?token=")) {
-    status.innerText = "❌ Token link tidak valid";
-    return;
+window.onload = () => {
+  if (tokenFromURL) {
+    // otomatis validasi tanpa harus submit
+    validateToken(tokenFromURL);
+  } else {
+    // kalau tidak ada token di URL, tampilkan popup input manual
+    document.getElementById("overlay").classList.remove("hidden");
   }
+};
 
-  const token = input.split("?token=")[1];
+function validateToken(token) {
+  const status = document.getElementById("status");
 
   fetch(`${API_BASE}/validate/${token}/${DEVICE_ID}`)
     .then(res => res.json())
     .then(data => {
       if (data.status === "valid") {
-        document.getElementById("overlay").classList.add("hidden");
-        document.getElementById("playerContainer").classList.remove("hidden");
-        initPlayer(STREAM_URL);
+        fetch(`${API_BASE}/current_stream`)
+          .then(r => r.json())
+          .then(stream => {
+            if (stream.status === "online") {
+              document.getElementById("overlay").classList.add("hidden");
+              document.getElementById("playerContainer").classList.remove("hidden");
+              initPlayer(stream.url);
+            } else {
+              status.innerText = "⚠️ Stream belum aktif";
+              document.getElementById("overlay").classList.remove("hidden");
+            }
+          });
       } else {
         status.innerText = "❌ " + data.message;
+        document.getElementById("overlay").classList.remove("hidden");
       }
     })
     .catch(err => {
@@ -30,32 +45,13 @@ function validateToken() {
     });
 }
 
-function initPlayer(url) {
-  const video = document.getElementById("video");
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = url;
+// Manual input tetap bisa dipakai fallback
+function validateTokenManual() {
+  const input = document.getElementById("tokenInput").value.trim();
+  if (!input.includes("?token=")) {
+    document.getElementById("status").innerText = "❌ Token link tidak valid";
+    return;
   }
-}
-
-// --- Dummy Realtime Viewer Counter ---
-let viewers = 0;
-setInterval(() => {
-  viewers = Math.floor(Math.random() * 100); // nanti diganti backend asli
-  document.getElementById("viewerCount").innerText = `👥 ${viewers} penonton`;
-}, 3000);
-
-// --- Dummy Chat ---
-function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const messages = document.getElementById("messages");
-  if (input.value.trim() !== "") {
-    const msg = document.createElement("div");
-    msg.textContent = "🧑 Kamu: " + input.value;
-    messages.appendChild(msg);
-    input.value = "";
-  }
+  const token = input.split("?token=")[1];
+  validateToken(token);
 }
