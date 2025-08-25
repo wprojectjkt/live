@@ -1,65 +1,61 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const video = document.getElementById("video");
-  const statusEl = document.getElementById("status");
-  const popup = document.getElementById("popup");
-  const popupMsg = document.getElementById("popupMessage");
-  const popupClose = document.getElementById("popupClose");
+const API_BASE = "https://bot.wproject.web.id/api";
+const STREAM_URL = "https://stream.wproject.web.id/hls/live.m3u8"; // ganti sesuai setup
+const DEVICE_ID = btoa(navigator.userAgent + navigator.language + screen.width + "x" + screen.height);
 
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
+function validateToken() {
+  const input = document.getElementById("tokenInput").value.trim();
+  const status = document.getElementById("status");
 
-  if (!token) {
-    popupMsg.textContent = "❌ Token tidak ditemukan!";
-    popup.classList.remove("hidden");
-    video.style.display = "none";
+  if (!input.includes("?token=")) {
+    status.innerText = "❌ Token link tidak valid";
     return;
   }
 
-  // Buat deviceID unik (lebih kuat daripada user agent)
-  async function getDeviceId() {
-    const msg = navigator.userAgent + navigator.language + screen.width + screen.height + screen.colorDepth;
-    const enc = new TextEncoder().encode(msg);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", enc);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-  }
+  const token = input.split("?token=")[1];
 
-  getDeviceId().then(deviceId => {
-    // Validasi ke backend bot
-    fetch(`https://bot.wproject.web.id/api/check_token?token=${token}&device=${deviceId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.valid) {
-          popupMsg.textContent = "✅ Token valid, membuka stream...";
-          popupClose.onclick = () => popup.classList.add("hidden");
-          startStream(token);
-        } else {
-          popupMsg.textContent = "❌ Token tidak valid / sudah dipakai!";
-          video.style.display = "none";
-        }
-      });
-  });
+  fetch(`${API_BASE}/validate/${token}/${DEVICE_ID}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "valid") {
+        document.getElementById("overlay").classList.add("hidden");
+        document.getElementById("playerContainer").classList.remove("hidden");
+        initPlayer(STREAM_URL);
+      } else {
+        status.innerText = "❌ " + data.message;
+      }
+    })
+    .catch(err => {
+      status.innerText = "⚠️ Error koneksi API";
+      console.error(err);
+    });
+}
 
-  function startStream(token) {
-    const streamUrl = `https://stream.wproject.web.id/hls/stream.m3u8?token=${token}`;
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(streamUrl);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function () {
-        video.play();
-        statusEl.textContent = "✅ Live connected.";
-      });
-      hls.on(Hls.Events.ERROR, function () {
-        statusEl.textContent = "⚠️ Stream tidak tersedia / token salah.";
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = streamUrl;
-      video.addEventListener("loadedmetadata", function () {
-        video.play();
-        statusEl.textContent = "✅ Live connected.";
-      });
-    } else {
-      statusEl.textContent = "❌ Browser tidak mendukung HLS.";
-    }
+function initPlayer(url) {
+  const video = document.getElementById("video");
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = url;
   }
-});
+}
+
+// --- Dummy Realtime Viewer Counter ---
+let viewers = 0;
+setInterval(() => {
+  viewers = Math.floor(Math.random() * 100); // nanti diganti backend asli
+  document.getElementById("viewerCount").innerText = `👥 ${viewers} penonton`;
+}, 3000);
+
+// --- Dummy Chat ---
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  const messages = document.getElementById("messages");
+  if (input.value.trim() !== "") {
+    const msg = document.createElement("div");
+    msg.textContent = "🧑 Kamu: " + input.value;
+    messages.appendChild(msg);
+    input.value = "";
+  }
+}
