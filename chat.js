@@ -33,7 +33,7 @@ function addMessage(user, text, self = false, isAdmin = false) {
   wrapper.appendChild(bubble);
 
   chatBox.appendChild(wrapper);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
 }
 
 sendBtn.onclick = () => {
@@ -52,11 +52,18 @@ document.querySelectorAll(".giftBtn").forEach(btn => {
 
 function showGift(user, emoji) {
   const gift = document.createElement("div");
-  gift.className = "bg-gray-800 bg-opacity-70 px-3 py-1 rounded-full text-white animate-bounce";
-  gift.textContent = `${user} mengirim ${emoji}`;
-  giftOverlay.appendChild(gift);
+  gift.className = "absolute bottom-10 left-1/2 transform -translate-x-1/2 text-4xl animate-float-up";
+  gift.textContent = emoji;
+  document.body.appendChild(gift);
 
-  setTimeout(() => gift.remove(), 3000);
+  setTimeout(() => gift.remove(), 2000);
+
+  // juga tampilkan di overlay kecil
+  const notif = document.createElement("div");
+  notif.className = "bg-gray-800 bg-opacity-70 px-3 py-1 rounded-full text-white animate-fade-in";
+  notif.textContent = `${user} mengirim ${emoji}`;
+  giftOverlay.appendChild(notif);
+  setTimeout(() => notif.remove(), 3000);
 }
 
 // Pinned message (contoh)
