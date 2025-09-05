@@ -2,22 +2,20 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Live Stream</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject - Streaming</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body>
-  <div class="header">
-    <h2>🎥 Live Stream</h2>
-    <button onclick="logout()">Logout</button>
+<body oncontextmenu="return false">
+  <div class="container">
+    <h1>📺 Live Stream</h1>
+    <div class="player-container">
+      <video id="videoPlayer" controls autoplay></video>
+    </div>
+    <button onclick="logout()">🚪 Logout</button>
+    <p id="status"></p>
   </div>
-
-  <div class="player-container">
-    <video id="videoPlayer" controls playsinline></video>
-  </div>
-
-  <p id="status"></p>
-  <script src="watch.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
