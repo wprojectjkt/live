@@ -1,0 +1,70 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0e0e0e;
+  color: #fff;
+}
+
+.login-container {
+  text-align: center;
+  margin-top: 15vh;
+}
+
+.logo {
+  max-width: 120px;
+  margin-bottom: 20px;
+}
+
+input {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  width: 280px;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+button {
+  background: #e91e63;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #c2185b;
+}
+
+.player-page header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  align-items: center;
+  background: #1e1e1e;
+}
+
+.logo-small {
+  max-height: 40px;
+}
+
+.player-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+video {
+  width: 100%;
+  max-width: 900px;
+  border-radius: 12px;
+}
+
+#status {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ccc;
+}

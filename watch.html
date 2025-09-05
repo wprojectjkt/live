@@ -1,36 +1,37 @@
-</html>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>WProject Live</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/player.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WProject Streaming - Player</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body>
-  <header>
-    <div class="logo">WProject Live</div>
-    <button onclick="logout()">Logout</button>
-  </header>
+<body oncontextmenu="return false">
+  <div class="player-page">
+    <header>
+      <img src="assets/logo.png" alt="Logo" class="logo-small" />
+      <button onclick="logout()">Logout</button>
+    </header>
 
-  <main>
-    <section class="player">
-  <div class="video-wrapper">
-    <video id="videoPlayer" controls></video>
-    <div class="custom-controls"></div>
+    <main>
+      <div class="player-wrapper">
+        <video id="video" controls autoplay playsinline></video>
+      </div>
+      <div id="status"></div>
+    </main>
   </div>
-  <div class="info-bar">
-    <img src="img/logo.png" alt="Streamer">
-  </div>
-</section>
 
-    <aside class="sidebar">
-      <h3>Stream Info</h3>
-      <p>Selamat datang di live 🚀</p>
-    </aside>
-  </main>
-
-  <script src="js/player.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+      validateAndPlay(token);
+    });
+  </script>
 </body>
+</html>
