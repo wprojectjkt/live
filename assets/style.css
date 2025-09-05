@@ -1,118 +1,62 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #181818;
+  background: #121212;
   color: #fff;
 }
 
-.login-page {
-  display: flex;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-container {
-  background: #222;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.login-container input {
-  width: 80%;
-  padding: 10px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 5px;
-}
-
-.login-container button {
+header {
+  background: #1e1e1e;
   padding: 10px 20px;
-  background: crimson;
-  border: none;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.container {
   display: flex;
-  height: 100vh;
-}
-
-.player-section {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #333;
 }
 
-.video-wrapper {
-  width: 100%;
-  max-width: 960px;
-  aspect-ratio: 16/9;
-  background: black;
+header .logo {
+  font-weight: bold;
+  font-size: 18px;
+  color: #e53935;
 }
 
-video {
-  width: 100%;
-  height: 100%;
-}
-
-.stream-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin: 10px;
-}
-
-.stream-info .avatar {
-  width: 50px;
-  border-radius: 50%;
-}
-
-.logout-btn {
-  margin-left: auto;
-  background: crimson;
+header button {
+  background: #e53935;
   border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  color: #fff;
-}
-
-.chat-section {
-  flex: 1;
-  background: #222;
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-box {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-}
-
-.chat-input {
-  display: flex;
-  padding: 10px;
-  border-top: 1px solid #444;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-}
-
-.chat-input button {
-  margin-left: 10px;
-  padding: 10px;
-  background: crimson;
-  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
   color: white;
-  border-radius: 5px;
+  cursor: pointer;
+}
+
+main {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+.login-box {
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: center;
+  margin: auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+
+.login-box input {
+  width: 90%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  margin: 15px 0;
+}
+
+.login-box button {
+  background: #e53935;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
 }

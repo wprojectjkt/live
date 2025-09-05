@@ -1,41 +1,37 @@
+</html>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>WProject Stream</title>
-  <link rel="stylesheet" href="style.css">
+  <title>WProject Live</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/player.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <div class="container">
-    <!-- Player Section -->
-    <div class="player-section">
-      <div class="video-wrapper">
-        <video id="videoPlayer" controls></video>
-      </div>
-      <div class="stream-info">
-        <img src="logo.png" alt="Streamer" class="avatar">
+  <header>
+    <div class="logo">WProject Live</div>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <section class="player">
+      <video id="videoPlayer" controls></video>
+      <div class="info-bar">
+        <img src="img/logo.png" alt="Streamer">
         <div>
-          <h3>WProject Live</h3>
-          <p>Streaming now • <span id="viewerCount">0</span> penonton</p>
+          <strong>WProject Streaming</strong>
+          <span id="viewerCount">0 penonton</span>
         </div>
-        <button onclick="logout()" class="logout-btn">Logout</button>
       </div>
-    </div>
+    </section>
 
-    <!-- Chat Section -->
-    <div class="chat-section">
-      <h3>Stream Chat</h3>
-      <div class="chat-box" id="chatBox">
-        <p>Selamat datang di WProject Live 🎉</p>
-      </div>
-      <div class="chat-input">
-        <input type="text" placeholder="Ketik pesan..." id="chatInput">
-        <button onclick="sendMessage()">Kirim</button>
-      </div>
-    </div>
-  </div>
+    <aside class="sidebar">
+      <h3>Stream Info</h3>
+      <p>Selamat datang di live 🚀</p>
+    </aside>
+  </main>
 
-  <script src="app.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
 </body>
-</html>
