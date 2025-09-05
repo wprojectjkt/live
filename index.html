@@ -1,21 +1,33 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WProject Streaming - Masuk</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>WProject - Login Token</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body oncontextmenu="return false">
+<body>
   <div class="login-container">
-    <img src="assets/logo.png" alt="Logo" class="logo" />
-    <h1>WProject Streaming</h1>
-    <p>Masukkan token akses Anda</p>
-    <input id="tokenInput" type="text" placeholder="Token..." />
+    <h1>🔑 Masuk dengan Token</h1>
+    <input type="text" id="tokenInput" placeholder="Masukkan token Anda">
     <button onclick="validateToken()">Masuk</button>
     <p id="status"></p>
   </div>
 
   <script src="app.js"></script>
+  <script>
+    // Blok klik kanan
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    // Blok shortcut devtools
+    document.onkeydown = function (e) {
+      if (
+        e.keyCode === 123 || // F12
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I/J
+        (e.ctrlKey && e.keyCode === 85) // Ctrl+U
+      ) {
+        return false;
+      }
+    };
+  </script>
 </body>
 </html>
