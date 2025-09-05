@@ -1,39 +1,18 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WProject Streaming</title>
-    <meta name="description" content="Platform streaming profesional">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="assets/favicon.ico">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject - Secure Watch</title>
+  <link rel="stylesheet" href="assets/style.css">
 </head>
-<body oncontextmenu="return false" onkeydown="return security.checkKey(event)">
-    <div class="container">
-        <header>
-            <h1>WProject Streaming</h1>
-            <div class="token-input">
-                <input type="text" id="tokenInput" placeholder="Masukkan token akses..." maxlength="64">
-                <button onclick="validateToken()">Akses Streaming</button>
-            </div>
-        </header>
-        
-        <main id="mainContent" style="display: none;">
-            <div class="player-container">
-                <video id="videoPlayer" controls autoplay muted></video>
-                <div class="stream-info">
-                    <h2>Live Stream</h2>
-                    <p>Status: <span id="streamStatus">Menunggu koneksi...</span></p>
-                </div>
-            </div>
-        </main>
-        
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-    </div>
-
-    <script src="js/security.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/main.js"></script>
+<body>
+  <div class="container">
+    <h2>Masukkan Token Akses</h2>
+    <input type="text" id="tokenInput" placeholder="Token anda...">
+    <button onclick="validateToken()">Masuk</button>
+    <p id="status"></p>
+  </div>
+  <script src="assets/app.js"></script>
 </body>
 </html>

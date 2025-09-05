@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject - Live Stream</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="hls.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <video id="video" controls autoplay></video>
+  </div>
+
+  <script>
+    // proteksi basic
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.onkeydown = function(e) {
+      if (e.keyCode == 123 || // F12
+          (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) ||
+                                       e.keyCode == 'J'.charCodeAt(0) ||
+                                       e.keyCode == 'C'.charCodeAt(0))) ||
+          (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+        return false;
+      }
+    };
+
+    // ambil token dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (!token) {
+      alert("Token tidak ditemukan!");
+      window.location.href = "index.html";
+    } else {
+      fetch(`https://bot.wproject.web.id/validate?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid) {
+            const video = document.getElementById('video');
+            const src = "https://stream.wproject.web.id/hls/teststream.m3u8";
+            if (Hls.isSupported()) {
+              const hls = new Hls();
+              hls.loadSource(src);
+              hls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+              video.src = src;
+            }
+          } else {
+            alert("Token tidak valid!");
+            window.location.href = "index.html";
+          }
+        })
+        .catch(err => {
+          alert("Gagal validasi token");
+          window.location.href = "index.html";
+        });
+    }
+  </script>
+</body>
+</html>
