@@ -1,42 +1,45 @@
-* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
-
 body {
-  background:#0f0f0f; color:#fff; min-height:100vh;
-  display:flex; justify-content:center; align-items:center;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
 
-.container {
-  background:#1a1a1a; padding:2rem; border-radius:16px;
-  width:90%; max-width:400px; text-align:center;
-  box-shadow:0 0 20px rgba(0,0,0,0.6);
+.login-container, .player-container {
+  margin-top: 5vh;
+  text-align: center;
 }
 
-h2 { margin-bottom:1.5rem; font-size:1.4rem; }
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  width: 250px;
+  margin-bottom: 10px;
+}
 
-.input-group { display:flex; gap:0.5rem; margin-bottom:1rem; }
-.input-group input {
-  flex:1; padding:0.7rem; border-radius:8px;
-  border:none; outline:none;
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #ff4757;
+  color: white;
+  font-weight: bold;
 }
-.input-group button {
-  background:#e91e63; color:white; border:none;
-  padding:0.7rem 1rem; border-radius:8px;
-  cursor:pointer; transition:0.2s;
-}
-.input-group button:hover { background:#ff4081; }
 
-#statusMsg { margin-top:0.5rem; font-size:0.9rem; }
+button:hover {
+  background: #ff6b81;
+}
 
-.player-container {
-  width:100%; max-width:900px; margin:auto; text-align:center;
+video {
+  width: 90vw;
+  max-width: 720px;
+  border-radius: 12px;
+  background: black;
 }
-.player-container video {
-  width:100%; border-radius:12px;
-  box-shadow:0 0 15px rgba(0,0,0,0.5);
-}
-#logoutBtn {
-  margin-top:1rem; padding:0.6rem 1.2rem;
-  border:none; background:#f44336; color:white;
-  border-radius:8px; cursor:pointer;
-}
-#logoutBtn:hover { background:#ff6659; }

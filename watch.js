@@ -1,29 +1,8 @@
-const API_URL = "https://bot.wproject.web.id";
 const STREAM_URL = "https://stream.wproject.web.id/hls/teststream.m3u8";
-
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get("token") || localStorage.getItem("wproject_token");
-
-const statusEl = document.getElementById("statusMsg");
+const token = localStorage.getItem("token");
 
 if (!token) {
   window.location.href = "index.html";
-}
-
-function validate() {
-  fetch(`${API_URL}/validate?token=${token}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.valid) {
-        initPlayer();
-      } else {
-        statusEl.innerText = `❌ ${data.message || "Token invalid"}`;
-        setTimeout(() => window.location.href = "index.html", 2000);
-      }
-    })
-    .catch(() => {
-      statusEl.innerText = "⚠️ Gagal koneksi API";
-    });
 }
 
 function initPlayer() {
@@ -32,19 +11,39 @@ function initPlayer() {
     const hls = new Hls();
     hls.loadSource(STREAM_URL);
     hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+      const levels = hls.levels;
+      if (levels.length > 1) {
+        const select = document.createElement("select");
+        select.id = "qualitySelect";
+        levels.forEach((lvl, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.text = `${lvl.height}p`;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", function () {
+          hls.currentLevel = parseInt(this.value);
+        });
+        document.querySelector(".player-container").appendChild(select);
+      }
+    });
   } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = STREAM_URL;
   }
 }
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  const formData = new FormData();
-  formData.append("token", token);
-  fetch(`${API_URL}/logout`, { method: "POST", body: formData })
+function logout() {
+  fetch("https://bot.wproject.web.id/logout?token=" + token, { method: "POST" })
     .then(() => {
-      localStorage.removeItem("wproject_token");
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    })
+    .catch(() => {
+      localStorage.removeItem("token");
       window.location.href = "index.html";
     });
-});
+}
 
-validate();
+window.onload = initPlayer;

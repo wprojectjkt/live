@@ -2,17 +2,22 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Streaming | WProject</title>
+  <title>Live Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script defer src="watch.js"></script>
 </head>
-<body oncontextmenu="return false;">
-  <div class="player-container">
-    <video id="videoPlayer" controls autoplay></video>
-    <br>
-    <button id="logoutBtn">Logout</button>
-    <div id="statusMsg"></div>
+<body>
+  <div class="header">
+    <h2>🎥 Live Stream</h2>
+    <button onclick="logout()">Logout</button>
   </div>
+
+  <div class="player-container">
+    <video id="videoPlayer" controls playsinline></video>
+  </div>
+
+  <p id="status"></p>
+  <script src="watch.js"></script>
 </body>
 </html>

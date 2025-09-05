@@ -2,19 +2,20 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Login Token | WProject</title>
+  <title>Masuk Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <script defer src="app.js"></script>
 </head>
-<body oncontextmenu="return false;">
-  <div class="container">
-    <h2>Masukkan Token Akses</h2>
-    <div class="input-group">
-      <input type="text" id="tokenInput" placeholder="Masukkan token">
-      <button id="pasteBtn">Tempel</button>
-      <button id="loginBtn">Masuk</button>
+<body>
+  <div class="login-container">
+    <h1>🔑 Masukkan Token</h1>
+    <input id="tokenInput" type="text" placeholder="Tempel token Anda di sini" autocomplete="off">
+    <div class="buttons">
+      <button onclick="validateToken()">Masuk</button>
+      <button onclick="pasteToken()">📋 Paste</button>
     </div>
-    <div id="statusMsg"></div>
+    <p id="status"></p>
   </div>
+  <script src="index.js"></script>
 </body>
 </html>
