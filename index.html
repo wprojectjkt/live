@@ -2,20 +2,21 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Masuk Stream</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject - Masuk</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="login-container">
-    <h1>🔑 Masukkan Token</h1>
-    <input id="tokenInput" type="text" placeholder="Tempel token Anda di sini" autocomplete="off">
-    <div class="buttons">
+<body oncontextmenu="return false">
+  <div class="container">
+    <h1>🔐 Masukkan Token</h1>
+    <div class="input-group">
+      <input type="text" id="tokenInput" placeholder="Masukkan token Anda">
       <button onclick="validateToken()">Masuk</button>
-      <button onclick="pasteToken()">📋 Paste</button>
+      <button id="pasteBtn">📋 Paste</button>
     </div>
     <p id="status"></p>
   </div>
-  <script src="index.js"></script>
+  <!-- ✅ pakai app.js, bukan index.js -->
+  <script src="app.js"></script>
 </body>
 </html>
