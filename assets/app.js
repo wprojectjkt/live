@@ -1,10 +1,4 @@
-// Blokir klik kanan & DevTools
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("keydown", function (e) {
-  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key))) {
-    e.preventDefault();
-  }
-});
+const API_URL = "https://bot.wproject.web.id/validate";
 
 function validateToken() {
   const token = document.getElementById("tokenInput").value.trim();
@@ -15,24 +9,25 @@ function validateToken() {
     return;
   }
 
-  statusEl.innerText = "🔄 Memvalidasi...";
+  statusEl.innerText = "🔄 Memvalidasi token...";
 
-  fetch(`https://bot.wproject.web.id/validate?token=${token}`)
+  fetch(`${API_URL}?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
         localStorage.setItem("token", token);
-        window.location.href = "watch.html";
+        statusEl.innerText = "✅ Token valid, masuk...";
+        setTimeout(() => window.location.href = "watch.html", 800);
       } else {
-        statusEl.innerText = "❌ " + (data.message || "Token tidak valid!");
+        statusEl.innerText = "❌ Token tidak valid.";
       }
     })
-    .catch(err => {
-      statusEl.innerText = "⚠️ Gagal koneksi API: " + err.message;
+    .catch(() => {
+      statusEl.innerText = "⚠️ Gagal koneksi API.";
     });
 }
 
-function initPlayer() {
+function initWatch() {
   const token = localStorage.getItem("token");
   const statusEl = document.getElementById("status");
 
@@ -41,16 +36,20 @@ function initPlayer() {
     return;
   }
 
-  fetch(`https://bot.wproject.web.id/validate?token=${token}`)
+  statusEl.innerText = "🔄 Memvalidasi token...";
+
+  fetch(`${API_URL}?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (!data.valid) {
-        statusEl.innerText = "❌ " + (data.message || "Token tidak valid.");
         localStorage.removeItem("token");
+        statusEl.innerText = "❌ Token invalid, kembali login.";
+        setTimeout(() => window.location.href = "index.html", 1500);
         return;
       }
 
-      // Init player
+      statusEl.innerText = "✅ Token valid. Memuat stream...";
+
       const player = videojs("video", {
         fluid: true,
         controlBar: {
@@ -59,27 +58,17 @@ function initPlayer() {
         }
       });
 
-      // add resolution selector plugin
-      player.httpSourceSelector();
       player.src({
         src: "https://stream.wproject.web.id/hls/teststream.m3u8",
         type: "application/x-mpegURL"
       });
-
-      statusEl.innerText = "▶️ Streaming dimulai...";
     })
-    .catch(err => {
-      statusEl.innerText = "⚠️ Error API: " + err.message;
+    .catch(() => {
+      statusEl.innerText = "⚠️ Error API.";
     });
 }
 
-
 function logoutToken() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-  fetch(`https://bot.wproject.web.id/logout?token=${token}`, { method: "POST" })
-    .then(() => {
-      localStorage.removeItem("token");
-      window.location.href = "index.html";
-    });
+  localStorage.removeItem("token");
+  window.location.href = "index.html";
 }
