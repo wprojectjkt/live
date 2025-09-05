@@ -1,52 +1,26 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject | Streaming</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <title>Streaming - WProject</title>
+  <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
-<body class="watch-page">
-
-  <!-- HEADER -->
+<body class="watch-bg">
   <header class="header">
     <div class="logo">🎥 WProject</div>
-    <div class="stream-status">🔴 Live</div>
+    <button class="logout" onclick="logoutToken()">Logout</button>
   </header>
 
-  <!-- MAIN -->
-  <main class="main">
-    <!-- PLAYER SECTION -->
-    <section class="player-section">
-      <video id="video" controls autoplay></video>
-      <div class="watermark">www.wproject.web.id</div>
-      <div id="status"></div>
-    </section>
-
-    <!-- SIDEBAR SECTION -->
-    <aside class="sidebar">
-      <h3>Info Stream</h3>
-      <p id="streamTitle">Judul Live Streaming</p>
-      <p>Resolusi: <span id="quality">Auto</span></p>
-      <button onclick="changeQuality('480')">480p</button>
-      <button onclick="changeQuality('720')">720p</button>
-      <button onclick="changeQuality('1080')">1080p</button>
-
-      <hr>
-      <h3>Share</h3>
-      <button onclick="copyLink()">📋 Copy Link</button>
-    </aside>
+  <main class="main-player">
+    <video id="video" class="video-js vjs-big-play-centered" controls autoplay></video>
+    <div class="watermark">www.wproject.web.id</div>
+    <div id="status"></div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <p>© 2025 WProject. All rights reserved.</p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
   <script src="assets/app.js"></script>
-  <script>
-    initPlayer();
-  </script>
+  <script>initPlayer();</script>
 </body>
 </html>

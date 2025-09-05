@@ -1,6 +1,6 @@
-// Security: disable right click & F12
+// Blokir klik kanan & DevTools
 document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", function (e) {
   if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key))) {
     e.preventDefault();
   }
@@ -15,16 +15,16 @@ function validateToken() {
     return;
   }
 
-  statusEl.innerText = "🔄 Memvalidasi token...";
+  statusEl.innerText = "🔄 Memvalidasi...";
 
   fetch(`https://bot.wproject.web.id/validate?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
-        statusEl.innerText = "✅ Token valid, masuk...";
-        window.location.href = `watch.html?token=${token}`;
+        localStorage.setItem("token", token);
+        window.location.href = "watch.html";
       } else {
-        statusEl.innerText = "❌ Token tidak valid!";
+        statusEl.innerText = "❌ " + (data.message || "Token tidak valid!");
       }
     })
     .catch(err => {
@@ -33,65 +33,33 @@ function validateToken() {
 }
 
 function initPlayer() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
+  const token = localStorage.getItem("token");
   const statusEl = document.getElementById("status");
 
   if (!token) {
-    statusEl.innerText = "❌ Token tidak ditemukan.";
+    window.location.href = "index.html";
     return;
   }
 
-  // Validasi ulang token
   fetch(`https://bot.wproject.web.id/validate?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (!data.valid) {
-        statusEl.innerText = "❌ Token invalid / sudah dipakai.";
+        statusEl.innerText = "❌ " + (data.message || "Token tidak valid.");
+        localStorage.removeItem("token");
         return;
       }
-
-      // Load HLS stream
-      const video = document.getElementById("video");
-      const streamUrl = "https://stream.wproject.web.id/hls/teststream_720/index.m3u8"; // ganti dinamis
-
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = streamUrl;
-      }
-
-      statusEl.innerText = "▶️ Streaming dimulai...";
-    })
-    .catch(err => {
-      statusEl.innerText = "⚠️ Error API: " + err.message;
-    });
-}
-let hls;
-const baseStream = "https://stream.wproject.web.id/hls/";
-
-function initPlayer() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
-  const statusEl = document.getElementById("status");
-
-  if (!token) {
-    statusEl.innerText = "❌ Token tidak ditemukan.";
-    return;
-  }
-
-  // Validasi token ke API
-  fetch(`https://bot.wproject.web.id/validate?token=${token}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.valid) {
-        statusEl.innerText = "❌ Token invalid / sudah dipakai.";
-        return;
-      }
-      // Load default 720p
-      loadStream("720");
+      const player = videojs("video", {
+        fluid: true,
+        controlBar: {
+          pictureInPictureToggle: true,
+          volumePanel: { inline: false }
+        }
+      });
+      player.src({
+        src: "https://stream.wproject.web.id/hls/teststream.m3u8",
+        type: "application/x-mpegURL"
+      });
       statusEl.innerText = "▶️ Streaming dimulai...";
     })
     .catch(err => {
@@ -99,28 +67,12 @@ function initPlayer() {
     });
 }
 
-function loadStream(quality) {
-  const video = document.getElementById("video");
-  const streamUrl = `${baseStream}teststream_${quality}/index.m3u8`;
-
-  if (Hls.isSupported()) {
-    if (hls) hls.destroy();
-    hls = new Hls();
-    hls.loadSource(streamUrl);
-    hls.attachMedia(video);
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = streamUrl;
-  }
-
-  document.getElementById("quality").innerText = quality + "p";
-}
-
-function changeQuality(q) {
-  loadStream(q);
-}
-
-function copyLink() {
-  const url = window.location.href;
-  navigator.clipboard.writeText(url);
-  alert("Link disalin ke clipboard!");
+function logoutToken() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  fetch(`https://bot.wproject.web.id/logout?token=${token}`, { method: "POST" })
+    .then(() => {
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    });
 }
