@@ -2,29 +2,40 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Streaming - WProject</title>
-  <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css">
+  <title>WProject Stream</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body oncontextmenu="return false;">
-  <div class="player-wrapper">
-    <video id="video" class="video-js vjs-big-play-centered" controls preload="auto"></video>
-    <div class="watermark">www.wproject.web.id</div>
-    <div id="status" class="status"></div>
-    <button class="logout" onclick="logoutToken()">Logout</button>
+<body>
+  <div class="container">
+    <!-- Player Section -->
+    <div class="player-section">
+      <div class="video-wrapper">
+        <video id="videoPlayer" controls></video>
+      </div>
+      <div class="stream-info">
+        <img src="logo.png" alt="Streamer" class="avatar">
+        <div>
+          <h3>WProject Live</h3>
+          <p>Streaming now • <span id="viewerCount">0</span> penonton</p>
+        </div>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+      </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="chat-section">
+      <h3>Stream Chat</h3>
+      <div class="chat-box" id="chatBox">
+        <p>Selamat datang di WProject Live 🎉</p>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Ketik pesan..." id="chatInput">
+        <button onclick="sendMessage()">Kirim</button>
+      </div>
+    </div>
   </div>
 
-  <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/videojs-http-source-selector@1.1.7/dist/videojs-http-source-selector.min.js"></script>
-  <script src="assets/app.js"></script>
-  <script>
-    initWatch();
-    document.addEventListener("keydown", e => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C","J"].includes(e.key))) {
-        e.preventDefault();
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

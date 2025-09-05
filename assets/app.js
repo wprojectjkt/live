@@ -1,4 +1,4 @@
-const API_URL = "https://bot.wproject.web.id/validate";
+const API_URL = "https://bot.wproject.web.id";
 
 function validateToken() {
   const token = document.getElementById("tokenInput").value.trim();
@@ -11,15 +11,14 @@ function validateToken() {
 
   statusEl.innerText = "🔄 Memvalidasi token...";
 
-  fetch(`${API_URL}?token=${token}`)
+  fetch(`${API_URL}/validate?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
-        localStorage.setItem("token", token);
         statusEl.innerText = "✅ Token valid, masuk...";
-        setTimeout(() => window.location.href = "watch.html", 700);
+        window.location.href = `watch.html?token=${token}`;
       } else {
-        statusEl.innerText = "❌ " + (data.message || "Token tidak valid.");
+        statusEl.innerText = "❌ Token tidak valid!";
       }
     })
     .catch(() => {
@@ -27,61 +26,58 @@ function validateToken() {
     });
 }
 
-function initWatch() {
-  const token = localStorage.getItem("token");
-  const statusEl = document.getElementById("status");
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "index.html";
+}
+
+function initPlayer() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
 
   if (!token) {
     window.location.href = "index.html";
     return;
   }
 
-  statusEl.innerText = "🔄 Memvalidasi token...";
-
-  fetch(`${API_URL}?token=${token}`)
+  fetch(`${API_URL}/validate?token=${token}`)
     .then(res => res.json())
     .then(data => {
-      if (!data.valid) {
-        localStorage.removeItem("token");
-        statusEl.innerText = "❌ " + (data.message || "Token invalid.");
-        setTimeout(() => window.location.href = "index.html", 1500);
-        return;
-      }
+      if (data.valid) {
+        const video = document.getElementById("videoPlayer");
+        const hlsUrl = "https://stream.wproject.web.id/hls/teststream.m3u8";
 
-      statusEl.innerText = "✅ Token valid. Memuat stream...";
-
-      const player = videojs("video", {
-        autoplay: false,
-        preload: "auto",
-        fluid: true,
-        controlBar: {
-          pictureInPictureToggle: true,
-          volumePanel: { inline: false }
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(hlsUrl);
+          hls.attachMedia(video);
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = hlsUrl;
         }
-      });
-
-      // Plugin resolusi
-      player.httpSourceSelector();
-
-      player.src({
-        src: "https://stream.wproject.web.id/hls/teststream.m3u8",
-        type: "application/x-mpegURL"
-      });
-
-      player.on("error", () => {
-        statusEl.innerText = "⚠️ Gagal memuat stream.";
-      });
-
-      player.on("loadedmetadata", () => {
-        statusEl.innerText = "▶️ Streaming siap.";
-      });
+      } else {
+        alert("Token tidak valid, silakan login kembali.");
+        window.location.href = "index.html";
+      }
     })
     .catch(() => {
-      statusEl.innerText = "⚠️ Error API.";
+      alert("⚠️ Error koneksi API.");
+      window.location.href = "index.html";
     });
 }
 
-function logoutToken() {
-  localStorage.removeItem("token");
-  window.location.href = "index.html";
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const chatBox = document.getElementById("chatBox");
+  const p = document.createElement("p");
+  p.innerText = `Anda: ${msg}`;
+  chatBox.appendChild(p);
+  input.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+if (document.getElementById("videoPlayer")) {
+  window.onload = initPlayer;
 }

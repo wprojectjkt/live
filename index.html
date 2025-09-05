@@ -2,27 +2,17 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Token - WProject</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <title>WProject Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body oncontextmenu="return false;">
-  <div class="background"></div>
-  <div class="login-box">
+<body class="login-page">
+  <div class="login-container">
     <h1>🎥 WProject</h1>
-    <p>Masukkan token akses untuk melanjutkan</p>
+    <p>Masukkan token akses Anda</p>
     <input type="text" id="tokenInput" placeholder="Masukkan token...">
     <button onclick="validateToken()">Masuk</button>
     <div id="status"></div>
   </div>
-  <script src="assets/app.js"></script>
-  <script>
-    // Blok DevTools
-    document.addEventListener("keydown", e => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C","J"].includes(e.key))) {
-        e.preventDefault();
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
