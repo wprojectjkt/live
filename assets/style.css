@@ -1,62 +1,66 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #121212;
-  color: #fff;
-}
-
-header {
-  background: #1e1e1e;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #333;
-}
-
-header .logo {
-  font-weight: bold;
-  font-size: 18px;
-  color: #e53935;
-}
-
-header button {
-  background: #e53935;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: #0f0f0f;
   color: white;
-  cursor: pointer;
 }
 
-main {
+.container {
   display: flex;
-  height: calc(100vh - 50px);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.login-box {
-  background: #1e1e1e;
-  padding: 30px;
-  border-radius: 12px;
-  width: 350px;
-  text-align: center;
-  margin: auto;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-}
-
-.login-box input {
-  width: 90%;
-  padding: 10px;
-  border-radius: 8px;
+.logo { width: 100px; margin-bottom: 20px; }
+button {
+  background: #ff2e63;
   border: none;
-  margin: 15px 0;
-}
-
-.login-box button {
-  background: #e53935;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: #fff;
+  padding: 12px 20px;
+  color: white;
+  font-size: 16px;
+  border-radius: 10px;
   cursor: pointer;
+}
+
+.player-container { max-width: 900px; margin: auto; padding: 10px; }
+.video-wrapper {
+  position: relative;
+  background: black;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+video { width: 100%; height: 100%; }
+
+.custom-controls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.quality-selector {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.info-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  gap: 10px;
+}
+.info-bar img { width: 40px; height: 40px; border-radius: 50%; }
+#logoutBtn { margin-left: auto; padding: 6px 12px; font-size: 14px; }
+
+@media (max-width: 600px) {
+  .player-container { padding: 5px; }
+  .info-bar strong { font-size: 14px; }
+  #logoutBtn { font-size: 12px; padding: 5px 10px; }
 }

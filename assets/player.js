@@ -1,5 +1,16 @@
-const API_URL = "https://bot.wproject.web.id";
 const HLS_URL = "https://stream.wproject.web.id/hls/teststream.m3u8";
+const token = localStorage.getItem("token");
+
+async function validateToken() {
+  if (!token) return false;
+  try {
+    const res = await fetch(`${API_URL}/validate?token=${token}`);
+    const data = await res.json();
+    return data.valid;
+  } catch {
+    return false;
+  }
+}
 
 function startPlayer() {
   const video = document.getElementById("videoPlayer");
@@ -9,8 +20,7 @@ function startPlayer() {
     hls.loadSource(HLS_URL);
     hls.attachMedia(video);
 
-    // Setelah manifest dimuat
-    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+    hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
       buildQualitySelector(hls, data.levels);
     });
   } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -20,17 +30,15 @@ function startPlayer() {
 
 function buildQualitySelector(hls, levels) {
   const controlBar = document.querySelector(".custom-controls");
-
   if (!levels || levels.length <= 1) return;
 
   const select = document.createElement("select");
   select.className = "quality-selector";
 
-  // Auto option
-  const autoOption = document.createElement("option");
-  autoOption.value = -1;
-  autoOption.text = "Auto";
-  select.appendChild(autoOption);
+  const autoOpt = document.createElement("option");
+  autoOpt.value = -1;
+  autoOpt.text = "Auto";
+  select.appendChild(autoOpt);
 
   levels.forEach((lvl, i) => {
     const opt = document.createElement("option");
@@ -40,28 +48,19 @@ function buildQualitySelector(hls, levels) {
   });
 
   select.addEventListener("change", () => {
-    const value = parseInt(select.value);
-    if (value === -1) {
-      hls.currentLevel = -1; // auto
-    } else {
-      hls.currentLevel = value;
-    }
+    hls.currentLevel = parseInt(select.value);
   });
 
   controlBar.appendChild(select);
 }
 
-function initPlayer() {
-  const token = new URLSearchParams(window.location.search).get("token");
-  if (!token) return logout();
-
-  fetch(`${API_URL}/validate?token=${token}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.valid) return logout();
-      startPlayer();
-    })
-    .catch(() => { alert("API Error"); logout(); });
-}
-
-window.onload = initPlayer;
+window.onload = async () => {
+  const valid = await validateToken();
+  if (!valid) {
+    alert("Token tidak valid!");
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+    return;
+  }
+  startPlayer();
+};
