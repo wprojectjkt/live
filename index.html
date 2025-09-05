@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject - Secure Watch</title>
-  <link rel="stylesheet" href="assets/style.css">
-
-  <!-- Anti-inspect basic -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://bot.wproject.web.id https://stream.wproject.web.id; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>WProject | Masuk</title>
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
-<body>
-  <div class="container">
-    <h2>Masukkan Token Akses</h2>
-    <input type="text" id="tokenInput" placeholder="Token anda...">
+<body class="login-page">
+
+  <div class="login-card">
+    <h1>🔑 Masuk dengan Token</h1>
+    <p>Masukkan token untuk mengakses streaming.</p>
+
+    <input type="text" id="tokenInput" placeholder="Masukkan token..." />
     <button onclick="validateToken()">Masuk</button>
-    <p id="status"></p>
+
+    <div id="status"></div>
   </div>
 
-  <script src="assets/security.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

@@ -1,50 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject - Live Stream</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <script src="hls.min.js"></script>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://bot.wproject.web.id https://stream.wproject.web.id; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>WProject | Streaming</title>
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
-<body>
-  <div class="container">
-    <video id="video" controls autoplay playsinline></video>
+<body class="watch-page">
+
+  <div class="player-wrapper">
+    <video id="video" controls autoplay></video>
+    <div class="watermark">www.wproject.web.id</div>
   </div>
 
-  <script src="assets/security.js"></script>
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
+  <div id="status"></div>
 
-    if (!token) {
-      alert("Token tidak ditemukan!");
-      window.location.href = "index.html";
-    } else {
-      fetch(`https://bot.wproject.web.id/validate?token=${token}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.valid) {
-            const video = document.getElementById('video');
-            const src = "https://stream.wproject.web.id/hls/teststream.m3u8";
-            if (Hls.isSupported()) {
-              const hls = new Hls();
-              hls.loadSource(src);
-              hls.attachMedia(video);
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-              video.src = src;
-            }
-          } else {
-            alert("Token tidak valid!");
-            window.location.href = "index.html";
-          }
-        })
-        .catch(err => {
-          alert("⚠️ Error koneksi API");
-          window.location.href = "index.html";
-        });
-    }
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    initPlayer();
   </script>
 </body>
 </html>
