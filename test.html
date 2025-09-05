@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streaming Platform</title>
+    <title>Live Streaming Platform - Test</title>
     <meta name="description" content="Professional live streaming platform with secure token-based access">
     <meta name="robots" content="noindex, nofollow">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
     
     <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/main.css">
@@ -35,6 +32,7 @@
             <div class="logo-section">
                 <h1>🎬 Live Streaming Platform</h1>
                 <p>Enter your access token to watch the live stream</p>
+                <p style="color: #f59e0b; font-size: 0.9rem;">TEST MODE - Using localhost backend</p>
             </div>
             
             <div class="token-form">
@@ -43,11 +41,20 @@
                     <button id="submit-token" type="button">Access Stream</button>
                 </div>
                 <div id="error-message" class="error-message"></div>
+                
+                <!-- Test tokens for easy testing -->
+                <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <p style="color: #a1a1aa; font-size: 0.9rem; margin-bottom: 10px;">Test Tokens (click to use):</p>
+                    <div id="test-tokens" style="display: flex; flex-direction: column; gap: 5px;">
+                        <!-- Test tokens will be loaded here -->
+                    </div>
+                </div>
             </div>
             
             <div class="info-section">
                 <p>🔐 Secure access with single-device authentication</p>
                 <p>📱 Get your token from our Telegram bot</p>
+                <p>🧪 This is a test environment</p>
             </div>
         </div>
     </div>
@@ -57,7 +64,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <h2>🎬 Live Stream</h2>
+                    <h2>🎬 Live Stream (TEST)</h2>
                 </div>
                 <div class="stream-status">
                     <span id="stream-indicator" class="stream-indicator">
@@ -90,6 +97,7 @@
                     <div class="error-content">
                         <h3>⚠️ Stream Unavailable</h3>
                         <p>The live stream is currently offline or experiencing technical difficulties.</p>
+                        <p style="color: #f59e0b;">This is expected in test mode - no actual stream server is running.</p>
                         <button id="retry-stream" class="retry-button">Retry Connection</button>
                     </div>
                 </div>
@@ -97,18 +105,22 @@
 
             <div class="stream-info">
                 <div class="stream-details">
-                    <h3 id="stream-title">Live Stream</h3>
-                    <p id="stream-description">Professional live streaming with secure access</p>
+                    <h3 id="stream-title">Live Stream (Test Mode)</h3>
+                    <p id="stream-description">Professional live streaming with secure access - Integration Testing</p>
                 </div>
                 
                 <div class="stream-stats">
                     <div class="stat-item">
                         <span class="stat-label">Quality:</span>
-                        <span id="stream-quality" class="stat-value">Auto</span>
+                        <span id="stream-quality" class="stat-value">Test</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Latency:</span>
-                        <span id="stream-latency" class="stat-value">Low</span>
+                        <span id="stream-latency" class="stat-value">N/A</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Mode:</span>
+                        <span class="stat-value" style="color: #f59e0b;">Testing</span>
                     </div>
                 </div>
             </div>
@@ -116,7 +128,7 @@
 
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2024 Live Streaming Platform. All rights reserved.</p>
+                <p>&copy; 2024 Live Streaming Platform. All rights reserved. (Test Environment)</p>
                 <div class="footer-links">
                     <a href="#" onclick="return false;">Privacy Policy</a>
                     <a href="#" onclick="return false;">Terms of Service</a>
@@ -141,9 +153,70 @@
     <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
     <script src="assets/js/security.js"></script>
     <script src="assets/js/fingerprint.js"></script>
-    <script src="assets/js/api.js"></script>
+    <script src="assets/js/api_test.js"></script>
     <script src="assets/js/player.js"></script>
     <script src="assets/js/main.js"></script>
+    
+    <!-- Test-specific JavaScript -->
+    <script>
+        // Add test tokens to the interface
+        const testTokens = [
+            'WlffPYMODVslHT17JxdRHjgUBFY0uJIL',
+            'Ctr3FhhEAe9PR8g48hqzy2UIptPczJGv',
+            'oGnUCBcRTtmfjw4LQMBl7ac1zi13lHzX',
+            'QdV1A3wpWZFXosMY2LllkuDOQx77dUpk',
+            '36NDoQbxng4DNX0WOb5sjX6G0G8fyEt5'
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const testTokensContainer = document.getElementById('test-tokens');
+            if (testTokensContainer) {
+                testTokens.forEach((token, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = `Token ${index + 1}: ${token.substring(0, 8)}...`;
+                    button.style.cssText = `
+                        padding: 8px 12px;
+                        background: rgba(99, 102, 241, 0.2);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        color: #6366f1;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 0.8rem;
+                        transition: all 0.3s ease;
+                    `;
+                    
+                    button.addEventListener('mouseover', () => {
+                        button.style.background = 'rgba(99, 102, 241, 0.3)';
+                    });
+                    
+                    button.addEventListener('mouseout', () => {
+                        button.style.background = 'rgba(99, 102, 241, 0.2)';
+                    });
+                    
+                    button.addEventListener('click', () => {
+                        const tokenInput = document.getElementById('token-input');
+                        if (tokenInput) {
+                            tokenInput.value = token;
+                            tokenInput.focus();
+                        }
+                    });
+                    
+                    testTokensContainer.appendChild(button);
+                });
+            }
+        });
+
+        // Test backend connection on load
+        window.addEventListener('load', async () => {
+            console.log('Testing backend connection...');
+            const connected = await window.apiClient.testConnection();
+            if (connected) {
+                console.log('✅ Backend connection successful');
+            } else {
+                console.log('❌ Backend connection failed');
+            }
+        });
+    </script>
 </body>
 </html>
 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Test - Simple</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    
+    <!-- Axios for API calls -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Token Input Screen -->
+    <div id="token-screen" class="token-screen">
+        <div class="token-container">
+            <div class="logo-section">
+                <h1>🎬 Integration Test</h1>
+                <p>Testing frontend-backend integration</p>
+            </div>
+            
+            <div class="token-form">
+                <div class="input-group">
+                    <input type="text" id="token-input" placeholder="Enter test token" value="WlffPYMODVslHT17JxdRHjgUBFY0uJIL">
+                    <button id="submit-token" type="button">Test Token</button>
+                </div>
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" style="color: #10b981; margin-top: 15px; display: none;"></div>
+            </div>
+            
+            <div class="info-section">
+                <p>🧪 Integration testing environment</p>
+                <p>🔗 Backend: http://localhost:5000</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results -->
+    <div id="test-results" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 8px; color: white; max-width: 400px; display: none;">
+        <h3>Test Results</h3>
+        <div id="results-content"></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="assets/js/api_test.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Simple integration test loaded');
+            
+            const tokenInput = document.getElementById('token-input');
+            const submitButton = document.getElementById('submit-token');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const testResults = document.getElementById('test-results');
+            const resultsContent = document.getElementById('results-content');
+            
+            // Test backend connection
+            console.log('Testing backend connection...');
+            const connected = await window.apiClient.testConnection();
+            
+            if (connected) {
+                console.log('✅ Backend connection successful');
+                successMessage.textContent = '✅ Backend connected successfully';
+                successMessage.style.display = 'block';
+            } else {
+                console.log('❌ Backend connection failed');
+                errorMessage.textContent = '❌ Backend connection failed';
+                errorMessage.classList.add('show');
+            }
+            
+            // Handle token submission
+            submitButton.addEventListener('click', async () => {
+                const token = tokenInput.value.trim();
+                
+                if (!token) {
+                    errorMessage.textContent = 'Please enter a token';
+                    errorMessage.classList.add('show');
+                    return;
+                }
+                
+                // Clear previous messages
+                errorMessage.classList.remove('show');
+                successMessage.style.display = 'none';
+                
+                // Disable button during test
+                submitButton.disabled = true;
+                submitButton.textContent = 'Testing...';
+                
+                try {
+                    // Generate a simple device fingerprint for testing
+                    const deviceFingerprint = 'test_device_' + Date.now();
+                    
+                    console.log('Testing token validation...');
+                    console.log('Token:', token);
+                    console.log('Device fingerprint:', deviceFingerprint);
+                    
+                    const result = await window.apiClient.validateToken(token, deviceFingerprint);
+                    
+                    console.log('Validation result:', result);
+                    
+                    // Show results
+                    testResults.style.display = 'block';
+                    resultsContent.innerHTML = `
+                        <p><strong>Status:</strong> ${result.status}</p>
+                        <p><strong>Message:</strong> ${result.message || 'N/A'}</p>
+                        <p><strong>Reason:</strong> ${result.reason || 'N/A'}</p>
+                        <p><strong>Token:</strong> ${token.substring(0, 8)}...</p>
+                        <p><strong>Fingerprint:</strong> ${deviceFingerprint}</p>
+                    `;
+                    
+                    if (result.status === 'success') {
+                        successMessage.textContent = '✅ Token validation successful!';
+                        successMessage.style.display = 'block';
+                    } else {
+                        errorMessage.textContent = `❌ ${window.apiClient.getErrorMessage(result)}`;
+                        errorMessage.classList.add('show');
+                    }
+                    
+                } catch (error) {
+                    console.error('Test error:', error);
+                    errorMessage.textContent = '❌ Test failed: ' + error.message;
+                    errorMessage.classList.add('show');
+                    
+                    resultsContent.innerHTML = `<p style="color: #ef4444;">Error: ${error.message}</p>`;
+                    testResults.style.display = 'block';
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Test Token';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
