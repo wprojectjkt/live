@@ -7,16 +7,17 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body oncontextmenu="return false;">
-  <div class="login-container">
+  <div class="background"></div>
+  <div class="login-box">
     <h1>🎥 WProject</h1>
-    <p>Masukkan token akses:</p>
-    <input type="text" id="tokenInput" placeholder="Token..." />
+    <p>Masukkan token akses untuk melanjutkan</p>
+    <input type="text" id="tokenInput" placeholder="Masukkan token...">
     <button onclick="validateToken()">Masuk</button>
     <div id="status"></div>
   </div>
   <script src="assets/app.js"></script>
   <script>
-    // blok devtools
+    // Blok DevTools
     document.addEventListener("keydown", e => {
       if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C","J"].includes(e.key))) {
         e.preventDefault();

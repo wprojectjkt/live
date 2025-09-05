@@ -17,7 +17,7 @@ function validateToken() {
       if (data.valid) {
         localStorage.setItem("token", token);
         statusEl.innerText = "✅ Token valid, masuk...";
-        setTimeout(() => window.location.href = "watch.html", 800);
+        setTimeout(() => window.location.href = "watch.html", 700);
       } else {
         statusEl.innerText = "❌ " + (data.message || "Token tidak valid.");
       }
@@ -60,14 +60,21 @@ function initWatch() {
         }
       });
 
-      // plugin resolusi
+      // Plugin resolusi
       player.httpSourceSelector();
+
       player.src({
         src: "https://stream.wproject.web.id/hls/teststream.m3u8",
         type: "application/x-mpegURL"
       });
 
-      statusEl.innerText = "▶️ Streaming siap.";
+      player.on("error", () => {
+        statusEl.innerText = "⚠️ Gagal memuat stream.";
+      });
+
+      player.on("loadedmetadata", () => {
+        statusEl.innerText = "▶️ Streaming siap.";
+      });
     })
     .catch(() => {
       statusEl.innerText = "⚠️ Error API.";
