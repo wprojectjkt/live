@@ -6,26 +6,15 @@
   <title>WProject - Live Stream</title>
   <link rel="stylesheet" href="assets/style.css">
   <script src="hls.min.js"></script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://bot.wproject.web.id https://stream.wproject.web.id; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
 </head>
 <body>
   <div class="container">
-    <video id="video" controls autoplay></video>
+    <video id="video" controls autoplay playsinline></video>
   </div>
 
+  <script src="assets/security.js"></script>
   <script>
-    // proteksi basic
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.onkeydown = function(e) {
-      if (e.keyCode == 123 || // F12
-          (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) ||
-                                       e.keyCode == 'J'.charCodeAt(0) ||
-                                       e.keyCode == 'C'.charCodeAt(0))) ||
-          (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-        return false;
-      }
-    };
-
-    // ambil token dari URL
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
 
@@ -52,7 +41,7 @@
           }
         })
         .catch(err => {
-          alert("Gagal validasi token");
+          alert("⚠️ Error koneksi API");
           window.location.href = "index.html";
         });
     }

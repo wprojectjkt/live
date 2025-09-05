@@ -1,20 +1,25 @@
 function validateToken() {
   const token = document.getElementById("tokenInput").value.trim();
+  const statusEl = document.getElementById("status");
+
   if (!token) {
-    document.getElementById("status").innerText = "Token tidak boleh kosong.";
+    statusEl.innerText = "⚠️ Token tidak boleh kosong.";
     return;
   }
+
+  statusEl.innerText = "🔄 Memvalidasi token...";
 
   fetch(`https://bot.wproject.web.id/validate?token=${token}`)
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
+        statusEl.innerText = "✅ Token valid, masuk...";
         window.location.href = `watch.html?token=${token}`;
       } else {
-        document.getElementById("status").innerText = "❌ Token invalid!";
+        statusEl.innerText = "❌ Token tidak valid!";
       }
     })
     .catch(err => {
-      document.getElementById("status").innerText = "⚠️ Error koneksi.";
+      statusEl.innerText = "⚠️ Gagal koneksi API.";
     });
 }
