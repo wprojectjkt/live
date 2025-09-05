@@ -2,43 +2,52 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>WProject - Login Token</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Token</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="login-container">
-    <h1>🔑 Masuk dengan Token</h1>
-    <input type="text" id="tokenInput" placeholder="Tempel token Anda di sini"
-           inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false">
-    <button onclick="validateToken()">Masuk</button>
-    <p id="status"></p>
+  <div class="container">
+    <h2>Masuk dengan Token</h2>
+    <div class="input-group">
+      <input type="text" id="tokenInput" placeholder="Masukkan token Anda">
+      <button id="pasteBtn">Tempel</button>
+      <button id="loginBtn">Masuk</button>
+    </div>
+    <p id="statusMsg"></p>
   </div>
 
-  <script src="app.js"></script>
   <script>
-    // Blok klik kanan → tetap aktif
-    document.addEventListener("contextmenu", e => e.preventDefault());
+    async function validateToken(token) {
+      try {
+        const res = await fetch(`https://api.wproject.web.id/validate?token=${token}`);
+        return await res.json();
+      } catch (e) {
+        return { valid: false, error: e.message };
+      }
+    }
 
-    // Izinkan paste → khusus input token
-    const tokenInput = document.getElementById("tokenInput");
-    tokenInput.addEventListener("paste", e => {
-      // Normal paste diperbolehkan
-      const paste = (e.clipboardData || window.clipboardData).getData('text');
-      e.target.value = paste.trim();
-      e.preventDefault();
+    document.getElementById("pasteBtn").addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("tokenInput").value = text.trim();
+      } catch (err) {
+        alert("Clipboard tidak bisa diakses. Coba tempel manual (tap & tahan).");
+      }
     });
 
-    // Blok shortcut devtools → tetap ada
-    document.onkeydown = function (e) {
-      if (
-        e.keyCode === 123 || // F12
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
-        (e.ctrlKey && e.keyCode === 85)
-      ) {
-        return false;
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const token = document.getElementById("tokenInput").value.trim();
+      if (!token) return alert("Isi token dulu!");
+
+      const result = await validateToken(token);
+      if (result.valid) {
+        localStorage.setItem("authToken", token);
+        window.location.href = "watch.html";
+      } else {
+        document.getElementById("statusMsg").innerText = `❌ ${result.message || "Token tidak valid!"}`;
       }
-    };
+    });
   </script>
 </body>
 </html>
