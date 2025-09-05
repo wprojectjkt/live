@@ -9,21 +9,32 @@
 <body>
   <div class="login-container">
     <h1>🔑 Masuk dengan Token</h1>
-    <input type="text" id="tokenInput" placeholder="Masukkan token Anda">
+    <input type="text" id="tokenInput" placeholder="Tempel token Anda di sini"
+           inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false">
     <button onclick="validateToken()">Masuk</button>
     <p id="status"></p>
   </div>
 
   <script src="app.js"></script>
   <script>
-    // Blok klik kanan
+    // Blok klik kanan → tetap aktif
     document.addEventListener("contextmenu", e => e.preventDefault());
-    // Blok shortcut devtools
+
+    // Izinkan paste → khusus input token
+    const tokenInput = document.getElementById("tokenInput");
+    tokenInput.addEventListener("paste", e => {
+      // Normal paste diperbolehkan
+      const paste = (e.clipboardData || window.clipboardData).getData('text');
+      e.target.value = paste.trim();
+      e.preventDefault();
+    });
+
+    // Blok shortcut devtools → tetap ada
     document.onkeydown = function (e) {
       if (
         e.keyCode === 123 || // F12
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I/J
-        (e.ctrlKey && e.keyCode === 85) // Ctrl+U
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+        (e.ctrlKey && e.keyCode === 85)
       ) {
         return false;
       }

@@ -60,6 +60,9 @@ async function logout() {
   try {
     await fetch(`${API_URL}/logout?token=${token}`, { method: "POST" });
   } catch {}
+  // Hapus token di browser sebelum redirect
   localStorage.removeItem("token");
+  sessionStorage.clear();
   window.location.href = "index.html";
 }
+
