@@ -1,14 +1,22 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WProject Live Stream</title>
-    <script type="module" crossorigin src="/assets/index-B1G5AWw1.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CgD67g_e.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<html lang="id">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>WProject Stream | Token Login</title>
+<link rel="stylesheet" href="assets/style.css"/><meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; connect-src https://bot.wproject.web.id;">
+</head>
+<body>
+<div class="container">
+  <h1>WProject Stream</h1>
+  <p>Masukkan token untuk menonton siaran.</p>
+  <form id="tokenForm">
+    <input id="tokenInput" type="text" placeholder="Tempel token di sini" required />
+    <button type="submit">Masuk</button>
+  </form>
+  <p class="hint">Token bersifat <b>1 perangkat</b>. Jika token sudah dipakai di perangkat lain, minta admin untuk me-reset.</p>
+</div>
+<script>
+document.addEventListener('contextmenu', e=>e.preventDefault());
+document.addEventListener('keydown', e=>{ if(e.key==='F12') e.preventDefault(); if(e.ctrlKey && e.shiftKey && ['I','C','J'].includes(e.key)) e.preventDefault(); if(e.ctrlKey && ['U','S','P'].includes(e.key)) e.preventDefault(); });
+document.getElementById('tokenForm').addEventListener('submit', e=>{ e.preventDefault(); const t=(document.getElementById('tokenInput').value||'').trim(); if(!t) return; location.href='player.html?t='+encodeURIComponent(t); });
+</script>
+</body>
 </html>
