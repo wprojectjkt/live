@@ -1,149 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streaming Platform</title>
-    <meta name="description" content="Professional live streaming platform with secure token-based access">
-    <meta name="robots" content="noindex, nofollow">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="assets/css/main.css">
-    
-    <!-- Video.js CSS -->
-    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
-    
-    <!-- FingerprintJS -->
-    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-    
-    <!-- Axios for API calls -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>WProject Streaming</title>
+    <meta name="description" content="Platform streaming profesional">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="assets/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loading-spinner"></div>
-        <p>Loading...</p>
-    </div>
-
-    <!-- Token Input Screen -->
-    <div id="token-screen" class="token-screen">
-        <div class="token-container">
-            <div class="logo-section">
-                <h1>🎬 Live Streaming Platform</h1>
-                <p>Enter your access token to watch the live stream</p>
-            </div>
-            
-            <div class="token-form">
-                <div class="input-group">
-                    <input type="text" id="token-input" placeholder="Enter your access token" maxlength="64" autocomplete="off" spellcheck="false">
-                    <button id="submit-token" type="button">Access Stream</button>
-                </div>
-                <div id="error-message" class="error-message"></div>
-            </div>
-            
-            <div class="info-section">
-                <p>🔐 Secure access with single-device authentication</p>
-                <p>📱 Get your token from our Telegram bot</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Streaming Interface -->
-    <div id="main-screen" class="main-screen hidden">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <h2>🎬 Live Stream</h2>
-                </div>
-                <div class="stream-status">
-                    <span id="stream-indicator" class="stream-indicator">
-                        <span class="status-dot"></span>
-                        <span class="status-text">LIVE</span>
-                    </span>
-                </div>
-                <div class="user-info">
-                    <span id="viewer-count" class="viewer-count">0 viewers</span>
-                </div>
+<body oncontextmenu="return false" onkeydown="return security.checkKey(event)">
+    <div class="container">
+        <header>
+            <h1>WProject Streaming</h1>
+            <div class="token-input">
+                <input type="text" id="tokenInput" placeholder="Masukkan token akses..." maxlength="64">
+                <button onclick="validateToken()">Akses Streaming</button>
             </div>
         </header>
-
-        <main class="main-content">
-            <div class="video-container">
-                <video-js
-                    id="video-player"
-                    class="vjs-default-skin"
-                    controls
-                    preload="auto"
-                    data-setup='{"fluid": true, "responsive": true}'
-                    poster="assets/images/stream-poster.jpg">
-                    <p class="vjs-no-js">
-                        To view this video please enable JavaScript, and consider upgrading to a web browser that
-                        <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
-                    </p>
-                </video-js>
-                
-                <div id="stream-error" class="stream-error hidden">
-                    <div class="error-content">
-                        <h3>⚠️ Stream Unavailable</h3>
-                        <p>The live stream is currently offline or experiencing technical difficulties.</p>
-                        <button id="retry-stream" class="retry-button">Retry Connection</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stream-info">
-                <div class="stream-details">
-                    <h3 id="stream-title">Live Stream</h3>
-                    <p id="stream-description">Professional live streaming with secure access</p>
-                </div>
-                
-                <div class="stream-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Quality:</span>
-                        <span id="stream-quality" class="stat-value">Auto</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Latency:</span>
-                        <span id="stream-latency" class="stat-value">Low</span>
-                    </div>
+        
+        <main id="mainContent" style="display: none;">
+            <div class="player-container">
+                <video id="videoPlayer" controls autoplay muted></video>
+                <div class="stream-info">
+                    <h2>Live Stream</h2>
+                    <p>Status: <span id="streamStatus">Menunggu koneksi...</span></p>
                 </div>
             </div>
         </main>
-
-        <footer class="footer">
-            <div class="footer-content">
-                <p>&copy; 2024 Live Streaming Platform. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#" onclick="return false;">Privacy Policy</a>
-                    <a href="#" onclick="return false;">Terms of Service</a>
-                    <a href="#" onclick="return false;">Support</a>
-                </div>
-            </div>
-        </footer>
+        
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
     </div>
 
-    <!-- Unauthorized Access Warning -->
-    <div id="warning-screen" class="warning-screen hidden">
-        <div class="warning-container">
-            <div class="warning-icon">⚠️</div>
-            <h2>Unauthorized Access Detected</h2>
-            <p>Developer tools or unauthorized access methods have been detected.</p>
-            <p>Please close any developer tools and refresh the page to continue.</p>
-            <button id="refresh-page" onclick="location.reload()">Refresh Page</button>
-        </div>
-    </div>
-
-    <!-- JavaScript Files -->
-    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
-    <script src="assets/js/security.js"></script>
-    <script src="assets/js/fingerprint.js"></script>
-    <script src="assets/js/api.js"></script>
-    <script src="assets/js/player.js"></script>
-    <script src="assets/js/main.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
-

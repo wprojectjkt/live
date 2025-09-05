@@ -1,0 +1,113 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.token-input {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.token-input input {
+    padding: 1rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 25px;
+    width: 300px;
+    outline: none;
+}
+
+.token-input button {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.token-input button:hover {
+    background: #ff5252;
+}
+
+.player-container {
+    background: rgba(0,0,0,0.8);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#videoPlayer {
+    width: 100%;
+    max-width: 800px;
+    height: 450px;
+    border-radius: 10px;
+    background: black;
+}
+
+.stream-info {
+    margin-top: 1rem;
+}
+
+.stream-info h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.error-message {
+    background: rgba(255, 0, 0, 0.8);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .token-input {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .token-input input {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    #videoPlayer {
+        height: 250px;
+    }
+}
