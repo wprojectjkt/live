@@ -2,66 +2,17 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Player</title>
+  <title>Streaming | WProject</title>
   <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="player-container">
-    <video id="livePlayer" controls autoplay></video>
-    <button id="logoutBtn">Logout</button>
-    <p id="statusMsg"></p>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    const token = localStorage.getItem("authToken");
-    const statusMsg = document.getElementById("statusMsg");
-
-    async function validateToken(token) {
-      try {
-        const res = await fetch(`https://api.wproject.web.id/validate?token=${token}`);
-        return await res.json();
-      } catch (e) {
-        return { valid: false, error: e.message };
-      }
-    }
-
-    async function initPlayer() {
-      if (!token) {
-        window.location.href = "index.html";
-        return;
-      }
-
-      const result = await validateToken(token);
-      if (!result.valid) {
-        statusMsg.innerText = `❌ ${result.message || "Token tidak valid!"}`;
-        localStorage.removeItem("authToken");
-        setTimeout(() => window.location.href = "index.html", 2000);
-        return;
-      }
-
-      const video = document.getElementById("livePlayer");
-      const streamUrl = "https://stream.wproject.web.id/hls/teststream.m3u8";
-
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = streamUrl;
-      }
-
-      statusMsg.innerText = "✅ Streaming dimulai";
-    }
-
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await fetch(`https://api.wproject.web.id/logout?token=${token}`, { method: "POST" });
-      localStorage.removeItem("authToken");
-      window.location.href = "index.html";
-    });
-
-    initPlayer();
-  </script>
+  <script defer src="watch.js"></script>
+</head>
+<body oncontextmenu="return false;">
+  <div class="player-container">
+    <video id="videoPlayer" controls autoplay></video>
+    <br>
+    <button id="logoutBtn">Logout</button>
+    <div id="statusMsg"></div>
+  </div>
 </body>
 </html>

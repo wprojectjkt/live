@@ -2,52 +2,19 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Token</title>
+  <title>Login Token | WProject</title>
   <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
 </head>
-<body>
+<body oncontextmenu="return false;">
   <div class="container">
-    <h2>Masuk dengan Token</h2>
+    <h2>Masukkan Token Akses</h2>
     <div class="input-group">
-      <input type="text" id="tokenInput" placeholder="Masukkan token Anda">
+      <input type="text" id="tokenInput" placeholder="Masukkan token">
       <button id="pasteBtn">Tempel</button>
       <button id="loginBtn">Masuk</button>
     </div>
-    <p id="statusMsg"></p>
+    <div id="statusMsg"></div>
   </div>
-
-  <script>
-    async function validateToken(token) {
-      try {
-        const res = await fetch(`https://api.wproject.web.id/validate?token=${token}`);
-        return await res.json();
-      } catch (e) {
-        return { valid: false, error: e.message };
-      }
-    }
-
-    document.getElementById("pasteBtn").addEventListener("click", async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        document.getElementById("tokenInput").value = text.trim();
-      } catch (err) {
-        alert("Clipboard tidak bisa diakses. Coba tempel manual (tap & tahan).");
-      }
-    });
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const token = document.getElementById("tokenInput").value.trim();
-      if (!token) return alert("Isi token dulu!");
-
-      const result = await validateToken(token);
-      if (result.valid) {
-        localStorage.setItem("authToken", token);
-        window.location.href = "watch.html";
-      } else {
-        document.getElementById("statusMsg").innerText = `❌ ${result.message || "Token tidak valid!"}`;
-      }
-    });
-  </script>
 </body>
 </html>
