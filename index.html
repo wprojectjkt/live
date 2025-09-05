@@ -2,16 +2,19 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Streaming</title>
+  <title>Login - WProject</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <div class="container">
-    <img src="assets/logo.png" alt="Logo" class="logo">
-    <h1>WProject Streaming</h1>
-    <button id="startBtn">Mulai Nonton</button>
+  <div class="login-box">
+    <img src="img/logo.png" class="logo" alt="WProject">
+    <h1>Masuk Live</h1>
+    <p>Masukkan token akses</p>
+    <input type="text" id="tokenInput" placeholder="Token...">
+    <button onclick="validateToken()">Masuk</button>
+    <div id="status"></div>
   </div>
-  <script src="assets/app.js"></script>
+
+  <script src="js/auth.js"></script>
 </body>
 </html>

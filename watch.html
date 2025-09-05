@@ -1,28 +1,36 @@
+</html>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player - WProject</title>
+  <title>WProject Live</title>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/player.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <div class="player-container">
-    <div class="video-wrapper">
-      <video id="videoPlayer" controls playsinline></video>
-      <div class="custom-controls"></div>
-    </div>
-    <div class="info-bar">
-      <img src="assets/logo.png" alt="Streamer">
-      <div>
-        <strong>WProject Live</strong>
-        <span id="viewerCount">0 penonton</span>
-      </div>
-      <button id="logoutBtn">Keluar</button>
-    </div>
+  <header>
+    <div class="logo">WProject Live</div>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <section class="player">
+  <div class="video-wrapper">
+    <video id="videoPlayer" controls></video>
+    <div class="custom-controls"></div>
   </div>
-  <script src="assets/app.js"></script>
-  <script src="assets/player.js"></script>
+  <div class="info-bar">
+    <img src="img/logo.png" alt="Streamer">
+  </div>
+</section>
+
+    <aside class="sidebar">
+      <h3>Stream Info</h3>
+      <p>Selamat datang di live 🚀</p>
+    </aside>
+  </main>
+
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
 </body>
-</html>
