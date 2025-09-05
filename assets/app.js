@@ -49,6 +49,8 @@ function initPlayer() {
         localStorage.removeItem("token");
         return;
       }
+
+      // Init player
       const player = videojs("video", {
         fluid: true,
         controlBar: {
@@ -56,16 +58,21 @@ function initPlayer() {
           volumePanel: { inline: false }
         }
       });
+
+      // add resolution selector plugin
+      player.httpSourceSelector();
       player.src({
         src: "https://stream.wproject.web.id/hls/teststream.m3u8",
         type: "application/x-mpegURL"
       });
+
       statusEl.innerText = "▶️ Streaming dimulai...";
     })
     .catch(err => {
       statusEl.innerText = "⚠️ Error API: " + err.message;
     });
 }
+
 
 function logoutToken() {
   const token = localStorage.getItem("token");

@@ -6,17 +6,21 @@
   <title>Streaming - WProject</title>
   <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
+  <!-- plugin resolusi -->
+  <script src="https://cdn.jsdelivr.net/npm/videojs-http-source-selector@1.1.7/dist/videojs-http-source-selector.min.js"></script>
 </head>
-<body class="watch-bg">
+<body>
   <header class="header">
     <div class="logo">🎥 WProject</div>
     <button class="logout" onclick="logoutToken()">Logout</button>
   </header>
 
   <main class="main-player">
-    <video id="video" class="video-js vjs-big-play-centered" controls autoplay></video>
-    <div class="watermark">www.wproject.web.id</div>
-    <div id="status"></div>
+    <div style="position:relative;">
+      <video id="video" class="video-js vjs-big-play-centered" controls preload="auto"></video>
+      <div class="watermark">www.wproject.web.id</div>
+    </div>
+    <div id="status" style="margin-top:10px;color:#ccc;font-size:14px;"></div>
   </main>
 
   <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
