@@ -1,38 +1,24 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Streaming - WProject</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WProject Streaming</title>
+  <link rel="stylesheet" href="assets/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <header class="live-header">
-    <h1>📡 WProject Live</h1>
-    <button onclick="logout()">Logout</button>
-  </header>
+  <div class="player-container">
+    <video id="video" class="video-player" controls playsinline></video>
 
-  <main class="live-player">
-    <div id="spinner" class="spinner-overlay">
-      <div class="spinner"></div>
-      <p>Loading stream...</p>
+    <div id="spinner" class="spinner" style="display:none;">
+      <div class="loader"></div>
     </div>
-    <video id="video" controls autoplay></video>
-    <div class="resolution-select">
-      <label for="quality">Resolusi:</label>
-      <select id="quality" onchange="changeQuality(this.value)">
-        <option value="360">360p</option>
-        <option value="480">480p</option>
-        <option value="720" selected>720p</option>
-        <option value="1080">1080p</option>
-      </select>
-    </div>
-  </main>
 
-  <footer class="live-footer">
-    <p>© 2025 WProject Streaming. All Rights Reserved.</p>
-  </footer>
+    <div class="controls">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
 
   <script src="assets/app.js"></script>
 </body>
