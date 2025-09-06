@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - WProject</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Token - WProject</title>
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <div class="login-container">
-    <div class="login-card">
-      <h2>🎟️ Masukkan Token Akses</h2>
-      <input type="text" id="tokenInput" placeholder="Masukkan token di sini">
-      <button onclick="submitToken()">Masuk</button>
-    </div>
+    <h2>Masuk dengan Token</h2>
+    <form id="loginForm">
+      <input type="text" id="tokenInput" placeholder="Masukkan token Anda" required />
+      <button type="submit">Masuk</button>
+    </form>
   </div>
-  <script src="assets/app.js"></script>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const token = document.getElementById("tokenInput").value.trim();
+      if (token) {
+        localStorage.setItem("token", token);
+        window.location.href = "watch.html";
+      }
+    });
+  </script>
 </body>
 </html>

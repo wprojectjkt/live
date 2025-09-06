@@ -8,7 +8,7 @@ function showSpinner(show) {
 function initPlayer() {
   const token = localStorage.getItem("token");
 
-  // kalau tidak ada token, balik ke login
+  // Cek token
   if (!token) {
     window.location.href = "index.html";
     return;
