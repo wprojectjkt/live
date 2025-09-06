@@ -89,29 +89,63 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    
-                    // Show error message
-                    tokenError.classList.remove('d-none');
-                    
-                    if (error.message.includes('Network response was not ok')) {
-                        tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda.';
-                    } else if (error.message.includes('Failed to fetch')) {
-                        tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan coba lagi nanti.';
-                    } else {
-                        tokenError.textContent = error.message || 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
-                    }
-                    
-                    tokenInput.value = '';
-                })
-                .finally(() => {
-                    // Reset button state
-                    verifyTokenBtn.disabled = false;
-                    verifyTokenBtn.innerHTML = 'Verifikasi';
-                });
+    console.error('Error:', error);
+    
+    // Show error message
+    tokenError.classList.remove('d-none');
+    
+    if (error.message.includes('HTTP error! status:')) {
+        const status = error.message.split('status: ')[1].split(',')[0];
+        const errorMessage = error.message.split('message: ')[1];
+        
+        if (status === '404') {
+            tokenError.textContent = 'Endpoint tidak ditemukan. Silakan hubungi admin.';
+        } else if (status === '500') {
+            tokenError.textContent = 'Server mengalami masalah: ' + (errorMessage || 'Silakan coba lagi nanti.');
+        } else if (status === '400') {
+            tokenError.textContent = 'Permintaan tidak valid: ' + (errorMessage || 'Silakan periksa token Anda.');
+        } else {
+            tokenError.textContent = `Kesalahan server (${status}): ${errorMessage || 'Silakan coba lagi nanti.'}`;
+        }
+    } else if (error.message.includes('Failed to fetch')) {
+        tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda atau coba lagi nanti.';
+    } else {
+        tokenError.textContent = error.message || 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
+    }
+    
+    tokenInput.value = '';
+})
         }
     });
     
+
+function testConnection() {
+    console.log('Testing connection to backend...');
+    return fetch('https://bot.wproject.web.id/health', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        console.log('Health check status:', response.status);
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error(`Health check failed with status: ${response.status}`);
+        }
+    })
+    .then(data => {
+        console.log('Health check response:', data);
+        return true;
+    })
+    .catch(error => {
+        console.error('Health check error:', error);
+        return false;
+    });
+}
+
+
     // Logout button click
     logoutBtn.addEventListener('click', function() {
         if (confirm('Apakah Anda yakin ingin logout?')) {
@@ -254,8 +288,17 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
             
+            // Clone the response so we can read it multiple times
+            const clonedResponse = response.clone();
+            
             if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.status);
+                // Try to get the error message from the response body
+                return clonedResponse.json().then(errorData => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
+                }).catch(() => {
+                    // If parsing the error response fails, throw a generic error
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
             }
             
             return response.json();
@@ -297,28 +340,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showToast(message, type = 'info') {
-        toastMessage.textContent = message;
-        
-        // Update toast styling based on type
-        const toastHeader = document.querySelector('#notificationToast .toast-header');
-        toastHeader.className = 'toast-header';
-        
-        switch(type) {
-            case 'success':
-                toastHeader.classList.add('bg-success', 'text-white');
-                break;
-            case 'danger':
-                toastHeader.classList.add('bg-danger', 'text-white');
-                break;
-            case 'warning':
-                toastHeader.classList.add('bg-warning', 'text-dark');
-                break;
-            default:
-                toastHeader.classList.add('bg-info', 'text-white');
-        }
-        
-        notificationToast.show();
+    toastMessage.textContent = message;
+    
+    // Update toast styling based on type
+    const toastHeader = document.querySelector('#notificationToast .toast-header');
+    toastHeader.className = 'toast-header';
+    
+    switch(type) {
+        case 'success':
+            toastHeader.classList.add('bg-success', 'text-white');
+            break;
+        case 'danger':
+            toastHeader.classList.add('bg-danger', 'text-white');
+            break;
+        case 'warning':
+            toastHeader.classList.add('bg-warning', 'text-dark');
+            break;
+        default:
+            toastHeader.classList.add('bg-info', 'text-white');
     }
+    
+    notificationToast.show();
+}
     
     // Disable right click
     document.addEventListener('contextmenu', function(e) {
