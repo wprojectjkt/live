@@ -8,7 +8,6 @@ function showSpinner(show) {
 function initPlayer() {
   const token = localStorage.getItem("token");
 
-  // Cek token
   if (!token) {
     window.location.href = "index.html";
     return;
