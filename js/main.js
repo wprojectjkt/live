@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
     alert('Device ID: ' + deviceId);
     
     // ... rest of the code
-
+});
+    
     // Initialize video player
     const player = videojs('videoPlayer', {
         fluid: true,
@@ -363,5 +364,3 @@ function useToken(token, deviceId) {
         }
     }, 500);
 });
-});
-    
