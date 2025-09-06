@@ -32,7 +32,8 @@ async function validateToken() {
     const data = await res.json();
     if (!data.success) throw new Error(data.msg);
 
-    changeQuality("720"); // default ke 720p
+    // ✅ Default adaptive (auto)
+    initPlayer("auto");
   } catch (err) {
     alert("Akses ditolak: " + err.message);
     localStorage.clear();
@@ -46,19 +47,16 @@ function showSpinner(show) {
   spinner.style.display = show ? "flex" : "none";
 }
 
-function initPlayer() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "index.html";
-    return;
-  }
+// === INIT PLAYER ===
+function initPlayer(quality = "auto") {
+  const base = "https://stream.wproject.web.id/hls/teststream";
+  const src = (quality === "auto") ? `${base}.m3u8` : `${base}_${quality}p.m3u8`;
 
-  const src = "https://stream.wproject.web.id/hls/teststream.m3u8";
   video = document.getElementById("video");
-
   showSpinner(true);
 
   if (Hls.isSupported()) {
+    if (hls) hls.destroy();
     hls = new Hls();
     hls.loadSource(src);
     hls.attachMedia(video);
@@ -81,33 +79,12 @@ function initPlayer() {
   }
 }
 
+// === CHANGE QUALITY MANUAL ===
 function changeQuality(q) {
-  const base = "https://stream.wproject.web.id/hls/teststream";
-  const src = (q === "auto") ? `${base}.m3u8` : `${base}_${q}p.m3u8`;
-
-  if (!video) video = document.getElementById("video");
-
-  showSpinner(true);
-
-  if (Hls.isSupported()) {
-    if (hls) hls.destroy();
-    hls = new Hls();
-    hls.loadSource(src);
-    hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      video.play();
-    });
-
-    hls.on(Hls.Events.FRAG_LOADED, () => {
-      showSpinner(false);
-    });
-  } else {
-    video.src = src;
-    video.oncanplay = () => showSpinner(false);
-  }
+  initPlayer(q);
 }
 
+// === LOGOUT ===
 async function logout() {
   const token = localStorage.getItem("wproject_token");
   await fetch(`${API_URL}/logout`, {
@@ -119,13 +96,19 @@ async function logout() {
   window.location.href = "index.html";
 }
 
-// Proteksi klik kanan & DevTools
+// === Proteksi klik kanan & DevTools ===
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.onkeydown = function(e) {
-  if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+  if (
+    e.keyCode == 123 || // F12
+    (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || // Ctrl+Shift+I/J
+    (e.ctrlKey && e.keyCode == 85) // Ctrl+U
+  ) {
+    return false;
+  }
 };
 
-// Jika di watch.html → validasi token
+// === Kalau halaman watch → validasi token dulu ===
 if (window.location.pathname.includes("watch.html")) {
   validateToken();
 }
