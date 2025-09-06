@@ -1,67 +1,99 @@
+/* ===== Reset & Global ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: "Inter", sans-serif; }
 
-/* Login Page */
+/* ===== Login Page ===== */
 .login-body {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #111;
+  background: radial-gradient(circle at top, #1f1f1f, #0f0f0f);
 }
 
 .login-card {
-  background: #1e1e1e;
-  padding: 30px;
-  border-radius: 12px;
+  background: rgba(30, 30, 30, 0.95);
+  padding: 40px;
+  border-radius: 16px;
   text-align: center;
-  width: 320px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  width: 340px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
-.login-card h2 { color: #fff; margin-bottom: 10px; }
-.login-card p { color: #aaa; margin-bottom: 20px; }
+
+.login-card h2 {
+  color: #fff;
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+}
+.login-card p { color: #aaa; margin-bottom: 25px; font-size: 0.95rem; }
+
 .login-card input {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  margin-bottom: 15px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  margin-bottom: 18px;
   font-size: 1rem;
+  background: #111;
+  color: #fff;
 }
+
 .btn {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 10px;
   border: none;
-  background: #e50914;
+  background: linear-gradient(135deg, #e50914, #b20710);
   color: #fff;
   font-size: 1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
 }
-.btn:hover { background: #f40612; }
+.btn:hover { transform: scale(1.03); }
 
-/* Live Page */
+/* ===== Live Page ===== */
 .live-body {
-  background: #000;
+  background: #0f0f0f;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
+/* Glass header/footer */
 .live-header, .live-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 14px 22px;
   color: #fff;
+  background: rgba(20,20,20,0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.creator-info { display: flex; align-items: center; gap: 10px; }
-.creator-avatar { width: 40px; height: 40px; border-radius: 50%; }
-.creator-name { font-weight: bold; }
-.viewer-count { font-size: 0.9rem; opacity: 0.8; }
+.live-footer {
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-bottom: none;
+}
 
+/* Creator Info */
+.creator-info { display: flex; align-items: center; gap: 12px; }
+.creator-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #e50914; }
+.creator-name { font-weight: 600; font-size: 1rem; }
+
+.viewer-count {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  background: rgba(255,255,255,0.08);
+  padding: 5px 12px;
+  border-radius: 12px;
+}
+
+/* Player Section */
 .live-player {
   flex: 1;
   display: flex;
@@ -72,29 +104,42 @@ body { font-family: "Inter", sans-serif; }
 
 video {
   width: 100%;
-  max-width: 700px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  max-width: 780px;
+  border-radius: 16px;
+  box-shadow: 0 0 35px rgba(229,9,20,0.3);
 }
 
+/* Resolution Dropdown */
 .resolution-select {
-  margin-top: 15px;
+  margin-top: 16px;
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.resolution-select select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: #222;
-  color: #fff;
-  border: none;
+  gap: 12px;
+  font-size: 0.95rem;
 }
 
-.logout {
-  background: #444;
-  width: auto;
-  padding: 8px 20px;
+.resolution-select select {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(30,30,30,0.9);
+  color: #fff;
+  border: 1px solid #444;
+  outline: none;
+  cursor: pointer;
+  font-size: 0.95rem;
 }
-.logout:hover { background: #666; }
+
+/* Logout Button */
+.logout {
+  background: #222;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: 0.3s;
+}
+.logout:hover {
+  background: #333;
+  transform: scale(1.05);
+}
