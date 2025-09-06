@@ -48,7 +48,7 @@ function showSpinner(show) {
 
 function changeQuality(q) {
   const base = "https://stream.wproject.web.id/hls/teststream";
-  const src = `${base}_${q}p.m3u8`;
+  const src = (q === "auto") ? `${base}.m3u8` : `${base}_${q}p.m3u8`;
 
   if (!video) video = document.getElementById("video");
 
