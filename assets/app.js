@@ -46,7 +46,7 @@ function showSpinner(show) {
   spinner.style.display = show ? "flex" : "none";
 }
 
-unction initPlayer() {
+function initPlayer() {
   const token = localStorage.getItem("token");
   if (!token) {
     window.location.href = "index.html";
