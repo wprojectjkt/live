@@ -8,7 +8,7 @@ function showSpinner(show) {
 function initPlayer() {
   const token = localStorage.getItem("token");
 
-  // Cek apakah ada token
+  // kalau tidak ada token, balik ke login
   if (!token) {
     window.location.href = "index.html";
     return;
@@ -20,6 +20,7 @@ function initPlayer() {
   showSpinner(true);
 
   if (Hls.isSupported()) {
+    if (hls) hls.destroy();
     hls = new Hls();
     hls.loadSource(src);
     hls.attachMedia(video);
