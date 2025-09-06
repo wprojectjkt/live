@@ -32,12 +32,18 @@ async function validateToken() {
     const data = await res.json();
     if (!data.success) throw new Error(data.msg);
 
-    changeQuality("720"); // default 720p
+    changeQuality("720"); // default ke 720p
   } catch (err) {
     alert("Akses ditolak: " + err.message);
     localStorage.clear();
     window.location.href = "index.html";
   }
+}
+
+function showSpinner(show) {
+  const spinner = document.getElementById("spinner");
+  if (!spinner) return;
+  spinner.style.display = show ? "flex" : "none";
 }
 
 function changeQuality(q) {
@@ -46,13 +52,24 @@ function changeQuality(q) {
 
   if (!video) video = document.getElementById("video");
 
+  showSpinner(true); // tampilkan spinner saat ganti resolusi
+
   if (Hls.isSupported()) {
     if (hls) hls.destroy();
     hls = new Hls();
     hls.loadSource(src);
     hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+    });
+
+    hls.on(Hls.Events.FRAG_LOADED, () => {
+      showSpinner(false); // sembunyikan spinner saat stream siap
+    });
   } else {
     video.src = src;
+    video.oncanplay = () => showSpinner(false);
   }
 }
 

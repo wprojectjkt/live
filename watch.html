@@ -17,17 +17,22 @@
   </header>
 
   <main class="live-player">
-    <video id="video" controls autoplay></video>
-    <div class="resolution-select">
-      <label for="quality">Resolusi:</label>
-      <select id="quality" onchange="changeQuality(this.value)">
-        <option value="360">360p</option>
-        <option value="480">480p</option>
-        <option value="720" selected>720p</option>
-        <option value="1080">1080p</option>
-      </select>
-    </div>
-  </main>
+  <div id="spinner" class="spinner-overlay">
+    <div class="spinner"></div>
+    <p>Loading stream...</p>
+  </div>
+  <video id="video" controls autoplay></video>
+  <div class="resolution-select">
+    <label for="quality">Resolusi:</label>
+    <select id="quality" onchange="changeQuality(this.value)">
+      <option value="360">360p</option>
+      <option value="480">480p</option>
+      <option value="720" selected>720p</option>
+      <option value="1080">1080p</option>
+    </select>
+  </div>
+</main>
+
 
   <footer class="live-footer">
     <button class="btn logout" onclick="logout()">Keluar</button>
