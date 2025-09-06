@@ -208,3 +208,89 @@ video {
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .login-card {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .login-card h2 {
+    font-size: 1.2rem;
+  }
+
+  .login-card input {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .login-card button {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  /* Live Page */
+  .live-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .live-header button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .live-player {
+    padding: 0;
+  }
+
+  .live-player video {
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .resolution-select {
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    padding: 5px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+
+  .resolution-select label {
+    display: none; /* biar hemat ruang */
+  }
+
+  .resolution-select select {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+
+  .live-footer {
+    font-size: 0.7rem;
+    padding: 10px;
+  }
+}
+
+/* Extra small (HP mini) */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 15px;
+  }
+
+  .live-header h1 {
+    font-size: 1rem;
+  }
+
+  .resolution-select {
+    bottom: 5px;
+    right: 5px;
+    font-size: 0.7rem;
+  }
+
+  .live-footer {
+    font-size: 0.65rem;
+  }
+}
