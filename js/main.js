@@ -29,8 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Generate or get device ID
-    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+let deviceId = localStorage.getItem('deviceId');
+if (!deviceId) {
+    deviceId = generateDeviceId();
     localStorage.setItem('deviceId', deviceId);
+    console.log('New device ID generated and stored:', deviceId);
+} else {
+    console.log('Using existing device ID:', deviceId);
+}
     
     // Check if token exists in localStorage
     const savedToken = localStorage.getItem('accessToken');
