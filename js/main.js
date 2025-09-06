@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function verifyToken(token, deviceId) {
     return new Promise((resolve, reject) => {
-        fetch('https://bot.wproject.web.id/api/tokens/validate', {
+        fetch('https://bot.wproject.web.id/tokens/validate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
