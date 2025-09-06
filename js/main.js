@@ -15,6 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadBtn = document.getElementById('downloadBtn');
     const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
     const toastMessage = document.getElementById('toastMessage');
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // Tambahkan ini untuk debugging
+    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+    alert('Device ID: ' + deviceId);
+    
+    // ... rest of the code
+});
     
     // Initialize video player
     const player = videojs('videoPlayer', {
@@ -196,8 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function verifyToken(token, deviceId) {
+    alert('Memverifikasi token: ' + token + ' untuk device: ' + deviceId);
     return new Promise((resolve, reject) => {
-        fetch('https://bot.wproject.web.id/tokens/validate', {
+        fetch('https://bot.wproject.web.id/api/tokens/validate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -205,15 +215,18 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ token, deviceId })
         })
         .then(response => {
+            alert('Status respons: ' + response.status);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.json();
         })
         .then(data => {
+            alert('Data respons: ' + JSON.stringify(data));
             resolve(data);
         })
         .catch(error => {
+            alert('Error: ' + error.message);
             console.error('Error verifying token:', error);
             reject(error);
         });
