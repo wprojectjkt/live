@@ -56,34 +56,56 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Verify token button click
     verifyTokenBtn.addEventListener('click', function() {
-        const token = tokenInput.value.trim();
-        if (token) {
-            verifyTokenBtn.disabled = true;
-            verifyTokenBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memverifikasi...';
-            
-            verifyToken(token, deviceId)
-                .then(response => {
-                    if (response.valid) {
-                        localStorage.setItem('accessToken', token);
-                        tokenModal.hide();
-                        mainContainer.classList.remove('d-none');
-                        showToast('Token berhasil diverifikasi', 'success');
-                    } else {
-                        tokenError.classList.remove('d-none');
-                        tokenInput.value = '';
-                    }
-                    verifyTokenBtn.disabled = false;
-                    verifyTokenBtn.innerHTML = 'Verifikasi';
-                })
-                .catch(error => {
-                    console.error('Error verifying token:', error);
+    const token = tokenInput.value.trim();
+    if (token) {
+        verifyTokenBtn.disabled = true;
+        verifyTokenBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memverifikasi...';
+        
+        verifyToken(token, deviceId)
+            .then(response => {
+                alert('Hasil verifikasi: ' + JSON.stringify(response));
+                if (response.valid) {
+                    // Gunakan token
+                    useToken(token, deviceId)
+                        .then(useResponse => {
+                            alert('Hasil use token: ' + JSON.stringify(useResponse));
+                            if (useResponse.valid) {
+                                localStorage.setItem('accessToken', token);
+                                tokenModal.hide();
+                                mainContainer.classList.remove('d-none');
+                                showToast('Token berhasil diverifikasi', 'success');
+                            } else {
+                                tokenError.classList.remove('d-none');
+                                tokenError.textContent = useResponse.message || 'Token tidak valid';
+                                tokenInput.value = '';
+                            }
+                            verifyTokenBtn.disabled = false;
+                            verifyTokenBtn.innerHTML = 'Verifikasi';
+                        })
+                        .catch(error => {
+                            console.error('Error using token:', error);
+                            tokenError.classList.remove('d-none');
+                            tokenError.textContent = 'Terjadi kesalahan saat menggunakan token. Silakan coba lagi.';
+                            verifyTokenBtn.disabled = false;
+                            verifyTokenBtn.innerHTML = 'Verifikasi';
+                        });
+                } else {
                     tokenError.classList.remove('d-none');
-                    tokenError.textContent = 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
+                    tokenError.textContent = response.message || 'Token tidak valid';
+                    tokenInput.value = '';
                     verifyTokenBtn.disabled = false;
                     verifyTokenBtn.innerHTML = 'Verifikasi';
-                });
-        }
-    });
+                }
+            })
+            .catch(error => {
+                console.error('Error verifying token:', error);
+                tokenError.classList.remove('d-none');
+                tokenError.textContent = 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
+                verifyTokenBtn.disabled = false;
+                verifyTokenBtn.innerHTML = 'Verifikasi';
+            });
+    }
+});
     
     // Logout button click
     logoutBtn.addEventListener('click', function() {
@@ -232,9 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 }
-    
 
 function useToken(token, deviceId) {
+    alert('Menggunakan token: ' + token + ' untuk device: ' + deviceId);
     return new Promise((resolve, reject) => {
         fetch('https://bot.wproject.web.id/api/tokens/use', {
             method: 'POST',
@@ -244,15 +266,18 @@ function useToken(token, deviceId) {
             body: JSON.stringify({ token, deviceId })
         })
         .then(response => {
+            alert('Status respons use token: ' + response.status);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.json();
         })
         .then(data => {
+            alert('Data respons use token: ' + JSON.stringify(data));
             resolve(data);
         })
         .catch(error => {
+            alert('Error use token: ' + error.message);
             console.error('Error using token:', error);
             reject(error);
         });
