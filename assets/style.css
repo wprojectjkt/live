@@ -1,17 +1,100 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Inter", sans-serif; }
+
+/* Login Page */
+.login-body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #111;
+}
+
+.login-card {
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  width: 320px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+}
+.login-card h2 { color: #fff; margin-bottom: 10px; }
+.login-card p { color: #aaa; margin-bottom: 20px; }
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #e50914;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.btn:hover { background: #f40612; }
+
+/* Live Page */
+.live-body {
+  background: #000;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.live-header, .live-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  color: #fff;
+}
+
+.creator-info { display: flex; align-items: center; gap: 10px; }
+.creator-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.creator-name { font-weight: bold; }
+.viewer-count { font-size: 0.9rem; opacity: 0.8; }
+
+.live-player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+video {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
 .resolution-select {
   margin-top: 15px;
   color: #fff;
-  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .resolution-select select {
   padding: 6px 10px;
   border-radius: 6px;
-  border: none;
-  outline: none;
   background: #222;
   color: #fff;
+  border: none;
 }
+
+.logout {
+  background: #444;
+  width: auto;
+  padding: 8px 20px;
+}
+.logout:hover { background: #666; }
