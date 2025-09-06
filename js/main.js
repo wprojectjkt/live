@@ -196,24 +196,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function verifyToken(token, deviceId) {
-        return new Promise((resolve, reject) => {
-            fetch('https://bot.wproject.web.id/api/tokens/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token, deviceId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                resolve(data);
-            })
-            .catch(error => {
-                reject(error);
-            });
+    return new Promise((resolve, reject) => {
+        fetch('https://bot.wproject.web.id/api/tokens/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token, deviceId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            resolve(data);
+        })
+        .catch(error => {
+            console.error('Error verifying token:', error);
+            reject(error);
         });
-    }
+    });
+}
     
+
+function useToken(token, deviceId) {
+    return new Promise((resolve, reject) => {
+        fetch('https://bot.wproject.web.id/api/tokens/use', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token, deviceId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            resolve(data);
+        })
+        .catch(error => {
+            console.error('Error using token:', error);
+            reject(error);
+        });
+    });
+}
+
     function invalidateToken(token) {
         return new Promise((resolve, reject) => {
             fetch('https://bot.wproject.web.id/api/tokens/release', {
