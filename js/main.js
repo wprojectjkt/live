@@ -15,15 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadBtn = document.getElementById('downloadBtn');
     const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
     const toastMessage = document.getElementById('toastMessage');
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-    // Tambahkan ini untuk debugging
-    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
-    alert('Device ID: ' + deviceId);
-    
-    // ... rest of the code
-});
     
     // Initialize video player
     const player = videojs('videoPlayer', {
@@ -37,83 +28,97 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Generate or get device ID
+    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+    localStorage.setItem('deviceId', deviceId);
+    
     // Check if token exists in localStorage
     const savedToken = localStorage.getItem('accessToken');
-    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
-    
-    // Save deviceId to localStorage if not exists
-    if (!localStorage.getItem('deviceId')) {
-        localStorage.setItem('deviceId', deviceId);
-    }
     
     // Show token modal if no token found
     if (!savedToken) {
         tokenModal.show();
     } else {
         // Verify saved token
-        verifyToken(savedToken, deviceId);
+        useToken(savedToken, deviceId)
+            .then(response => {
+                if (response.valid) {
+                    tokenModal.hide();
+                    mainContainer.classList.remove('d-none');
+                    showToast('Token berhasil diverifikasi', 'success');
+                } else {
+                    localStorage.removeItem('accessToken');
+                    tokenModal.show();
+                }
+            })
+            .catch(error => {
+                console.error('Error verifying saved token:', error);
+                localStorage.removeItem('accessToken');
+                tokenModal.show();
+            });
     }
     
     // Verify token button click
     verifyTokenBtn.addEventListener('click', function() {
-    const token = tokenInput.value.trim();
-    if (token) {
-        verifyTokenBtn.disabled = true;
-        verifyTokenBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memverifikasi...';
-        
-        verifyToken(token, deviceId)
-            .then(response => {
-                alert('Hasil verifikasi: ' + JSON.stringify(response));
-                if (response.valid) {
-                    // Gunakan token
-                    useToken(token, deviceId)
-                        .then(useResponse => {
-                            alert('Hasil use token: ' + JSON.stringify(useResponse));
-                            if (useResponse.valid) {
-                                localStorage.setItem('accessToken', token);
-                                tokenModal.hide();
-                                mainContainer.classList.remove('d-none');
-                                showToast('Token berhasil diverifikasi', 'success');
-                            } else {
-                                tokenError.classList.remove('d-none');
-                                tokenError.textContent = useResponse.message || 'Token tidak valid';
-                                tokenInput.value = '';
-                            }
-                            verifyTokenBtn.disabled = false;
-                            verifyTokenBtn.innerHTML = 'Verifikasi';
-                        })
-                        .catch(error => {
-                            console.error('Error using token:', error);
-                            tokenError.classList.remove('d-none');
-                            tokenError.textContent = 'Terjadi kesalahan saat menggunakan token. Silakan coba lagi.';
-                            verifyTokenBtn.disabled = false;
-                            verifyTokenBtn.innerHTML = 'Verifikasi';
-                        });
-                } else {
+        const token = tokenInput.value.trim();
+        if (token) {
+            verifyTokenBtn.disabled = true;
+            verifyTokenBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memverifikasi...';
+            
+            // Reset error message
+            tokenError.classList.add('d-none');
+            
+            // Use token (which includes validation)
+            useToken(token, deviceId)
+                .then(response => {
+                    console.log('Response from useToken:', response);
+                    
+                    if (response.valid) {
+                        // Save token to localStorage
+                        localStorage.setItem('accessToken', token);
+                        
+                        // Hide modal and show main content
+                        tokenModal.hide();
+                        mainContainer.classList.remove('d-none');
+                        showToast('Token berhasil diverifikasi', 'success');
+                    } else {
+                        // Show error message
+                        tokenError.classList.remove('d-none');
+                        tokenError.textContent = response.message || 'Token tidak valid atau sudah digunakan di perangkat lain';
+                        tokenInput.value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Show error message
                     tokenError.classList.remove('d-none');
-                    tokenError.textContent = response.message || 'Token tidak valid';
+                    
+                    if (error.message.includes('Network response was not ok')) {
+                        tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan coba lagi nanti.';
+                    } else {
+                        tokenError.textContent = error.message || 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
+                    }
+                    
                     tokenInput.value = '';
+                })
+                .finally(() => {
+                    // Reset button state
                     verifyTokenBtn.disabled = false;
                     verifyTokenBtn.innerHTML = 'Verifikasi';
-                }
-            })
-            .catch(error => {
-                console.error('Error verifying token:', error);
-                tokenError.classList.remove('d-none');
-                tokenError.textContent = 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
-                verifyTokenBtn.disabled = false;
-                verifyTokenBtn.innerHTML = 'Verifikasi';
-            });
-    }
-});
+                });
+        }
+    });
     
     // Logout button click
     logoutBtn.addEventListener('click', function() {
         if (confirm('Apakah Anda yakin ingin logout?')) {
             const token = localStorage.getItem('accessToken');
             if (token) {
-                // Invalidate token on server
-                invalidateToken(token)
+                // Release token on server
+                releaseToken(token)
                     .then(() => {
                         localStorage.removeItem('accessToken');
                         tokenInput.value = '';
@@ -123,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         showToast('Anda telah berhasil logout', 'info');
                     })
                     .catch(error => {
-                        console.error('Error invalidating token:', error);
+                        console.error('Error releasing token:', error);
                         localStorage.removeItem('accessToken');
                         tokenInput.value = '';
                         tokenError.classList.add('d-none');
@@ -204,20 +209,29 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(() => {
         const token = localStorage.getItem('accessToken');
         if (token) {
-            verifyToken(token, deviceId)
-                .then(response => {
-                    if (!response.valid) {
-                        localStorage.removeItem('accessToken');
-                        tokenInput.value = '';
-                        tokenError.classList.remove('d-none');
-                        mainContainer.classList.add('d-none');
-                        tokenModal.show();
-                        showToast('Sesi Anda telah berakhir. Silakan masukkan token kembali.', 'warning');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking token validity:', error);
-                });
+            // Check if token is still valid
+            fetch('https://bot.wproject.web.id/api/tokens/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token, deviceId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    localStorage.removeItem('accessToken');
+                    tokenInput.value = '';
+                    tokenError.classList.remove('d-none');
+                    tokenError.textContent = 'Sesi Anda telah berakhir. Silakan masukkan token kembali.';
+                    mainContainer.classList.add('d-none');
+                    tokenModal.show();
+                    showToast('Sesi Anda telah berakhir. Silakan masukkan token kembali.', 'warning');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking token validity:', error);
+            });
         }
     }, 60000); // Check every minute
     
@@ -226,65 +240,37 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'device-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
     }
     
-    function verifyToken(token, deviceId) {
-    alert('Memverifikasi token: ' + token + ' untuk device: ' + deviceId);
-    return new Promise((resolve, reject) => {
-        fetch('https://bot.wproject.web.id/api/tokens/validate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token, deviceId })
-        })
-        .then(response => {
-            alert('Status respons: ' + response.status);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            alert('Data respons: ' + JSON.stringify(data));
-            resolve(data);
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-            console.error('Error verifying token:', error);
-            reject(error);
+    function useToken(token, deviceId) {
+        console.log('Using token:', token, 'for device:', deviceId);
+        return new Promise((resolve, reject) => {
+            fetch('https://bot.wproject.web.id/api/tokens/use', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token, deviceId })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                resolve(data);
+            })
+            .catch(error => {
+                console.error('Error using token:', error);
+                reject(error);
+            });
         });
-    });
-}
-
-function useToken(token, deviceId) {
-    alert('Menggunakan token: ' + token + ' untuk device: ' + deviceId);
-    return new Promise((resolve, reject) => {
-        fetch('https://bot.wproject.web.id/api/tokens/use', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token, deviceId })
-        })
-        .then(response => {
-            alert('Status respons use token: ' + response.status);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            alert('Data respons use token: ' + JSON.stringify(data));
-            resolve(data);
-        })
-        .catch(error => {
-            alert('Error use token: ' + error.message);
-            console.error('Error using token:', error);
-            reject(error);
-        });
-    });
-}
-
-    function invalidateToken(token) {
+    }
+    
+    function releaseToken(token) {
         return new Promise((resolve, reject) => {
             fetch('https://bot.wproject.web.id/api/tokens/release', {
                 method: 'POST',
@@ -293,11 +279,17 @@ function useToken(token, deviceId) {
                 },
                 body: JSON.stringify({ token })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 resolve(data);
             })
             .catch(error => {
+                console.error('Error releasing token:', error);
                 reject(error);
             });
         });
