@@ -9,7 +9,10 @@
 </head>
 <body>
   <header class="live-header">
-    <h1>📡 WProject Live</h1>
+    <div class="header-left">
+      <img src="assets/avatar.png" alt="Avatar" class="avatar">
+      <h1>📡 WProject Live</h1>
+    </div>
     <button onclick="logout()">Logout</button>
   </header>
 
@@ -18,15 +21,18 @@
       <div class="spinner"></div>
       <p>Loading stream...</p>
     </div>
-    <video id="video" controls autoplay></video>
-    <div class="resolution-select">
-      <label for="quality">Resolusi:</label>
-      <select id="quality" onchange="changeQuality(this.value)">
-        <option value="360">360p</option>
-        <option value="480">480p</option>
-        <option value="720" selected>720p</option>
-        <option value="1080">1080p</option>
-      </select>
+
+    <div class="video-container">
+      <video id="video" controls autoplay playsinline></video>
+
+      <div class="resolution-select">
+        <select id="quality" onchange="changeQuality(this.value)">
+          <option value="auto" selected>Auto</option>
+          <option value="480">480p</option>
+          <option value="720">720p</option>
+          <option value="1080">1080p</option>
+        </select>
+      </div>
     </div>
   </main>
 
