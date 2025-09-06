@@ -241,34 +241,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function useToken(token, deviceId) {
-        console.log('Using token:', token, 'for device:', deviceId);
-        return new Promise((resolve, reject) => {
-            fetch('https://bot.wproject.web.id/api/tokens/use', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token, deviceId })
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.status);
-                }
-                
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                resolve(data);
-            })
-            .catch(error => {
-                console.error('Error using token:', error);
-                reject(error);
-            });
+    console.log('Using token:', token, 'for device:', deviceId);
+    return new Promise((resolve, reject) => {
+        fetch('https://bot.wproject.web.id/api/tokens/use', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token, deviceId })
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.error('Error using token:', error);
+            reject(error);
         });
-    }
+    });
+}
     
     function releaseToken(token) {
         return new Promise((resolve, reject) => {
