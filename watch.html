@@ -1,41 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>WProject - Live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Streaming - WProject</title>
   <link rel="stylesheet" href="assets/style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script defer src="assets/app.js"></script>
 </head>
-<body class="live-body">
+<body>
   <header class="live-header">
-    <div class="creator-info">
-      <img src="https://i.pravatar.cc/40" alt="Creator" class="creator-avatar">
-      <span class="creator-name">WProject Live</span>
-    </div>
-    <div class="viewer-count">👁 124 penonton</div>
+    <h1>📡 WProject Live</h1>
+    <button onclick="logout()">Logout</button>
   </header>
 
   <main class="live-player">
-  <div id="spinner" class="spinner-overlay">
-    <div class="spinner"></div>
-    <p>Loading stream...</p>
-  </div>
-  <video id="video" controls autoplay></video>
-  <div class="resolution-select">
-    <label for="quality">Resolusi:</label>
-    <select id="quality" onchange="changeQuality(this.value)">
-      <option value="360">360p</option>
-      <option value="480">480p</option>
-      <option value="720" selected>720p</option>
-      <option value="1080">1080p</option>
-    </select>
-  </div>
-</main>
-
+    <div id="spinner" class="spinner-overlay">
+      <div class="spinner"></div>
+      <p>Loading stream...</p>
+    </div>
+    <video id="video" controls autoplay></video>
+    <div class="resolution-select">
+      <label for="quality">Resolusi:</label>
+      <select id="quality" onchange="changeQuality(this.value)">
+        <option value="360">360p</option>
+        <option value="480">480p</option>
+        <option value="720" selected>720p</option>
+        <option value="1080">1080p</option>
+      </select>
+    </div>
+  </main>
 
   <footer class="live-footer">
-    <button class="btn logout" onclick="logout()">Keluar</button>
+    <p>© 2025 WProject Streaming. All Rights Reserved.</p>
   </footer>
+
+  <script src="assets/app.js"></script>
 </body>
 </html>

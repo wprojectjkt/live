@@ -52,7 +52,7 @@ function changeQuality(q) {
 
   if (!video) video = document.getElementById("video");
 
-  showSpinner(true); // tampilkan spinner saat ganti resolusi
+  showSpinner(true);
 
   if (Hls.isSupported()) {
     if (hls) hls.destroy();
@@ -65,7 +65,7 @@ function changeQuality(q) {
     });
 
     hls.on(Hls.Events.FRAG_LOADED, () => {
-      showSpinner(false); // sembunyikan spinner saat stream siap
+      showSpinner(false);
     });
   } else {
     video.src = src;

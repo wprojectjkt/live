@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - WProject</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="admin-page">
+  <header class="live-header">
+    <h1>🔐 Admin Panel</h1>
+    <button onclick="logoutAdmin()" id="logoutBtn" style="display:none;">Logout</button>
+  </header>
+
+  <main class="admin-container">
+    <!-- Login Form -->
+    <section id="loginSection" class="admin-card">
+      <h2>Login Admin</h2>
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="loginAdmin()">Login</button>
+    </section>
+
+    <!-- Dashboard (hidden until login) -->
+    <section id="dashboard" style="display:none;">
+      <!-- Token Management -->
+      <div class="admin-card">
+        <h2>🎟️ Token Management</h2>
+        <div class="actions">
+          <input type="number" id="tokenCount" placeholder="Jumlah token" min="1" value="5">
+          <button onclick="generateTokens()">Generate Token</button>
+          <button class="danger" onclick="resetTokens()">Reset Semua Token</button>
+        </div>
+        <table id="tokenTable">
+          <thead>
+            <tr><th>Token</th><th>Status</th><th>Device</th><th>Aksi</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Admin Management -->
+      <div class="admin-card">
+        <h2>👑 Admin Management</h2>
+        <div class="actions">
+          <input type="text" id="newAdmin" placeholder="Username Baru">
+          <input type="password" id="newAdminPass" placeholder="Password Baru">
+          <button onclick="addAdmin()">Tambah Admin</button>
+        </div>
+        <table id="adminTable">
+          <thead>
+            <tr><th>Username</th><th>Aksi</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/admin.js"></script>
+</body>
+</html>
