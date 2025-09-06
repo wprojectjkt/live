@@ -1,34 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login WProject</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - WProject</title>
+  <link rel="stylesheet" href="assets/style.css">
 </head>
-<body oncontextmenu="return false">
-  <div class="login-wrapper">
-    <div class="login-card animate-fade">
-      <img src="assets/avatar.png" alt="Logo" class="login-logo" />
-      <h2>Masuk dengan Token</h2>
-      <input id="tokenInput" type="text" placeholder="Masukkan token" />
-      <button onclick="login()">Masuk</button>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <h2>🎟️ Masukkan Token Akses</h2>
+      <input type="text" id="tokenInput" placeholder="Masukkan token di sini">
+      <button onclick="submitToken()">Masuk</button>
     </div>
   </div>
-
   <script src="assets/app.js"></script>
-  <script>
-    // Anti DevTools & klik kanan
-    document.addEventListener("keydown", function(e) {
-      if (
-        e.keyCode === 123 || 
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
-        (e.ctrlKey && e.keyCode === 85)
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    });
-  </script>
 </body>
 </html>

@@ -1,43 +1,39 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WProject Live</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Streaming - WProject</title>
+  <link rel="stylesheet" href="assets/style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body oncontextmenu="return false">
-  <div class="live-wrapper animate-fade">
-    <!-- Avatar kiri atas -->
-    <div class="top-bar">
-      <img src="assets/avatar.png" alt="Avatar" class="avatar" />
-      <button class="btn-control" onclick="logout()">⏻ Logout</button>
-    </div>
+<body>
+  <header class="live-header">
+    <h1>📡 WProject Live</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
 
-    <!-- Video player -->
-    <video id="video" class="live-video" playsinline controls></video>
-
-    <!-- Preloader -->
-    <div id="preloader" class="preloader">
-      <div class="loader"></div>
-      <p class="loading-text">Menunggu live dimulai...</p>
+  <main class="live-player">
+    <div id="spinner" class="spinner-overlay">
+      <div class="spinner"></div>
+      <p>Loading stream...</p>
     </div>
-  </div>
+    <video id="video" controls autoplay></video>
+    <div class="resolution-select">
+      <label for="quality">Resolusi:</label>
+      <select id="quality" onchange="changeQuality(this.value)">
+        <option value="360">360p</option>
+        <option value="480">480p</option>
+        <option value="720" selected>720p</option>
+        <option value="1080">1080p</option>
+      </select>
+    </div>
+  </main>
+
+  <footer class="live-footer">
+    <p>© 2025 WProject Streaming. All Rights Reserved.</p>
+  </footer>
 
   <script src="assets/app.js"></script>
-  <script>
-    // Anti DevTools
-    document.addEventListener("keydown", function(e) {
-      if (
-        e.keyCode === 123 || 
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
-        (e.ctrlKey && e.keyCode === 85)
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    });
-  </script>
 </body>
 </html>

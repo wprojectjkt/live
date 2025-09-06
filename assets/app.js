@@ -1,52 +1,96 @@
+const API_URL = "https://bot.wproject.web.id/api";
 let hls, video;
 
-function login() {
+function getFingerprint() {
+  return btoa(navigator.userAgent + screen.width + "x" + screen.height);
+}
+
+function submitToken() {
   const token = document.getElementById("tokenInput").value.trim();
-  if (!token) {
-    alert("Token tidak boleh kosong!");
-    return;
-  }
-  localStorage.setItem("token", token);
+  if (!token) return alert("Token kosong!");
+  localStorage.setItem("wproject_token", token);
+  localStorage.setItem("wproject_device", getFingerprint());
   window.location.href = "watch.html";
 }
 
-function initPlayer() {
-  const token = localStorage.getItem("token");
-  if (!token) {
+async function validateToken() {
+  const token = localStorage.getItem("wproject_token");
+  const device = localStorage.getItem("wproject_device");
+
+  if (!token || !device) {
     window.location.href = "index.html";
     return;
   }
 
-  const src = "https://stream.wproject.web.id/hls/teststream.m3u8";
-  video = document.getElementById("video");
+  try {
+    const res = await fetch(`${API_URL}/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, device })
+    });
 
-  document.getElementById("preloader").style.display = "flex";
+    const data = await res.json();
+    if (!data.success) throw new Error(data.msg);
+
+    changeQuality("720"); // default ke 720p
+  } catch (err) {
+    alert("Akses ditolak: " + err.message);
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+}
+
+function showSpinner(show) {
+  const spinner = document.getElementById("spinner");
+  if (!spinner) return;
+  spinner.style.display = show ? "flex" : "none";
+}
+
+function changeQuality(q) {
+  const base = "https://stream.wproject.web.id/hls/teststream";
+  const src = `${base}_${q}p.m3u8`;
+
+  if (!video) video = document.getElementById("video");
+
+  showSpinner(true);
 
   if (Hls.isSupported()) {
+    if (hls) hls.destroy();
     hls = new Hls();
     hls.loadSource(src);
     hls.attachMedia(video);
 
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    hls.on(Hls.Events.FRAG_LOADED, () => {
-      document.getElementById("preloader").style.display = "none";
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
     });
-  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+
+    hls.on(Hls.Events.FRAG_LOADED, () => {
+      showSpinner(false);
+    });
+  } else {
     video.src = src;
-    video.addEventListener("loadedmetadata", () => video.play());
-    video.oncanplay = () => {
-      document.getElementById("preloader").style.display = "none";
-    };
+    video.oncanplay = () => showSpinner(false);
   }
 }
 
-function logout() {
-  localStorage.removeItem("token");
+async function logout() {
+  const token = localStorage.getItem("wproject_token");
+  await fetch(`${API_URL}/logout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  });
+  localStorage.clear();
   window.location.href = "index.html";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("video")) {
-    initPlayer();
-  }
-});
+// Proteksi klik kanan & DevTools
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.onkeydown = function(e) {
+  if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+};
+
+// Jika di watch.html → validasi token
+if (window.location.pathname.includes("watch.html")) {
+  validateToken();
+}
