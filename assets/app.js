@@ -1,13 +1,19 @@
 let hls, video;
 
-// Show/Hide Spinner
 function showSpinner(show) {
   const spinner = document.getElementById("spinner");
   spinner.style.display = show ? "flex" : "none";
 }
 
-// Initialize player with adaptive HLS
 function initPlayer() {
+  const token = localStorage.getItem("token");
+
+  // Cek apakah ada token
+  if (!token) {
+    window.location.href = "index.html";
+    return;
+  }
+
   const src = "https://stream.wproject.web.id/hls/teststream.m3u8";
   video = document.getElementById("video");
 
@@ -38,11 +44,9 @@ function initPlayer() {
   }
 }
 
-// Logout function
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "index.html";
 }
 
-// Auto init
 document.addEventListener("DOMContentLoaded", initPlayer);
