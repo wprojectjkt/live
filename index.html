@@ -1,136 +1,17 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WProject Streaming</title>
-    <meta name="description" content="Streaming platform by WProject">
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/video-js.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="assets/img/logo.png" type="image/png">
+  <meta charset="UTF-8">
+  <title>WProject - Secure Stream</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script defer src="assets/app.js"></script>
 </head>
 <body>
-    <!-- Token Verification Modal -->
-    <div class="modal fade" id="tokenModal" tabindex="-1" aria-labelledby="tokenModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tokenModalLabel">Verifikasi Token</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="tokenInput" class="form-label">Masukkan Token Akses</label>
-                        <input type="text" class="form-control" id="tokenInput" placeholder="Token Anda">
-                        <div class="form-text">Token dapat diperoleh dari admin bot Telegram</div>
-                    </div>
-                    <div id="tokenError" class="alert alert-danger d-none">
-                        Token tidak valid atau sudah digunakan di perangkat lain.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="verifyTokenBtn">Verifikasi</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="container-fluid main-container d-none">
-        <div class="row">
-            <div class="col-12 p-0">
-                <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-                    <div class="container-fluid">
-                        <a class="navbar-brand" href="#">
-                            <img src="assets/img/logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
-                            WProject Streaming
-                        </a>
-                        <div class="d-flex">
-                            <span class="navbar-text me-3" id="userStatus">Status: Aktif</span>
-                            <button class="btn btn-outline-light" id="logoutBtn">Logout</button>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-lg-8 mx-auto">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Live Streaming</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <video
-                            id="videoPlayer"
-                            class="video-js vjs-default-skin vjs-big-play-centered"
-                            controls
-                            preload="auto"
-                            width="100%"
-                            height="auto"
-                            data-setup="{}">
-                            <source src="https://stream.wproject.web.id/hls/teststream.m3u8" type="application/x-mpegURL">
-                            <p class="vjs-no-js">
-                                To view this video please enable JavaScript, and consider upgrading to a web browser that
-                                <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
-                            </p>
-                        </video>
-                    </div>
-                    <div class="card-footer">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <button class="btn btn-sm btn-outline-secondary" id="refreshStreamBtn">
-                                    <i class="bi bi-arrow-clockwise"></i> Refresh Stream
-                                </button>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="qualityDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Kualitas: Auto
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="qualityDropdown">
-                                    <li><a class="dropdown-item quality-option" href="#" data-quality="auto">Auto</a></li>
-                                    <li><a class="dropdown-item quality-option" href="#" data-quality="high">Tinggi (1080p)</a></li>
-                                    <li><a class="dropdown-item quality-option" href="#" data-quality="medium">Sedang (720p)</a></li>
-                                    <li><a class="dropdown-item quality-option" href="#" data-quality="low">Rendah (480p)</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card mt-4 d-none" id="downloadCard">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Download Video</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Streaming telah selesai. Anda dapat mengunduh video dari link di bawah ini:</p>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="downloadLink" readonly>
-                            <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">Salin</button>
-                            <a href="#" class="btn btn-primary" id="downloadBtn" target="_blank">Download</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Notifikasi</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toastMessage">
-                Pesan notifikasi
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/video.min.js"></script>
-    <script src="js/main.js"></script>
+  <div class="container">
+    <h1>🔑 WProject Secure Stream</h1>
+    <p>Masukkan token untuk menonton</p>
+    <input type="text" id="tokenInput" placeholder="Masukkan token">
+    <button onclick="submitToken()">Masuk</button>
+  </div>
 </body>
 </html>
