@@ -94,21 +94,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show error message
     tokenError.classList.remove('d-none');
     
-    if (error.message.includes('HTTP error! status:')) {
-        const status = error.message.split('status: ')[1].split(',')[0];
-        const errorMessage = error.message.split('message: ')[1];
+    if (error.message.includes('Server returned status:')) {
+        const status = error.message.split(': ')[1];
         
-        if (status === '404') {
-            tokenError.textContent = 'Endpoint tidak ditemukan. Silakan hubungi admin.';
-        } else if (status === '500') {
-            tokenError.textContent = 'Server mengalami masalah: ' + (errorMessage || 'Silakan coba lagi nanti.');
-        } else if (status === '400') {
-            tokenError.textContent = 'Permintaan tidak valid: ' + (errorMessage || 'Silakan periksa token Anda.');
-        } else {
-            tokenError.textContent = `Kesalahan server (${status}): ${errorMessage || 'Silakan coba lagi nanti.'}`;
+        switch(status) {
+            case '400':
+                tokenError.textContent = 'Token tidak valid atau sudah digunakan di perangkat lain.';
+                break;
+            case '404':
+                tokenError.textContent = 'Endpoint tidak ditemukan. Silakan hubungi admin.';
+                break;
+            case '500':
+                tokenError.textContent = 'Server mengalami masalah internal. Silakan coba lagi nanti.';
+                break;
+            default:
+                tokenError.textContent = `Server mengembalikan error (${status}). Silakan coba lagi.`;
         }
-    } else if (error.message.includes('Failed to fetch')) {
+    } else if (error.message.includes('Network error')) {
         tokenError.textContent = 'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda atau coba lagi nanti.';
+    } else if (error.message.includes('timeout')) {
+        tokenError.textContent = 'Request timeout. Server tidak merespon. Silakan coba lagi.';
+    } else if (error.message.includes('Error parsing')) {
+        tokenError.textContent = 'Error memproses respons server. Silakan coba lagi.';
     } else {
         tokenError.textContent = error.message || 'Terjadi kesalahan saat verifikasi token. Silakan coba lagi.';
     }
@@ -119,29 +126,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
-function testConnection() {
-    console.log('Testing connection to backend...');
-    return fetch('https://bot.wproject.web.id/health', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        console.log('Health check status:', response.status);
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error(`Health check failed with status: ${response.status}`);
-        }
-    })
-    .then(data => {
-        console.log('Health check response:', data);
-        return true;
-    })
-    .catch(error => {
-        console.error('Health check error:', error);
-        return false;
+function testBackendConnection() {
+    console.log('Testing backend connection...');
+    
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const url = 'https://bot.wproject.web.id/health';
+        
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        console.log('Backend connection test successful:', response);
+                        resolve(true);
+                    } catch (e) {
+                        console.error('Error parsing health check response:', e);
+                        resolve(false);
+                    }
+                } else {
+                    console.error('Backend connection test failed:', xhr.status);
+                    resolve(false);
+                }
+            }
+        };
+        
+        xhr.onerror = function() {
+            console.error('Backend connection test network error');
+            resolve(false);
+        };
+        
+        xhr.timeout = 5000; // 5 second timeout
+        xhr.ontimeout = function() {
+            console.error('Backend connection test timeout');
+            resolve(false);
+        };
+        
+        xhr.send();
     });
 }
 
@@ -271,46 +295,58 @@ function testConnection() {
     
     // Functions
     function generateDeviceId() {
-        return 'device-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
-    }
+    const deviceId = 'device-' + Math.random().toString(36).substring(2, 15) + '-' + Date.now();
+    console.log('Generated device ID:', deviceId);
+    return deviceId;
+}
     
     function useToken(token, deviceId) {
     console.log('Using token:', token, 'for device:', deviceId);
+    
     return new Promise((resolve, reject) => {
-        fetch('https://bot.wproject.web.id/api/tokens/use', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token, deviceId })
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
+        // Create XHR request instead of fetch for better error handling
+        const xhr = new XMLHttpRequest();
+        const url = 'https://bot.wproject.web.id/api/tokens/use';
+        
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            console.log('XHR readyState:', xhr.readyState, 'Status:', xhr.status);
             
-            // Clone the response so we can read it multiple times
-            const clonedResponse = response.clone();
-            
-            if (!response.ok) {
-                // Try to get the error message from the response body
-                return clonedResponse.json().then(errorData => {
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
-                }).catch(() => {
-                    // If parsing the error response fails, throw a generic error
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                });
+            if (xhr.readyState === 4) { // Request is complete
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        console.log('XHR Response:', response);
+                        resolve(response);
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        reject(new Error('Error parsing server response'));
+                    }
+                } else {
+                    console.error('XHR Error:', xhr.status, xhr.statusText);
+                    reject(new Error(`Server returned status: ${xhr.status}`));
+                }
             }
-            
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            resolve(data);
-        })
-        .catch(error => {
-            console.error('Error using token:', error);
-            reject(error);
-        });
+        };
+        
+        xhr.onerror = function() {
+            console.error('XHR Network Error');
+            reject(new Error('Network error - unable to connect to server'));
+        };
+        
+        xhr.ontimeout = function() {
+            console.error('XHR Timeout');
+            reject(new Error('Request timeout - server did not respond'));
+        };
+        
+        try {
+            xhr.send(JSON.stringify({ token, deviceId }));
+        } catch (e) {
+            console.error('Error sending request:', e);
+            reject(new Error('Error sending request to server'));
+        }
     });
 }
     
