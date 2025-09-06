@@ -4,51 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WProject Live</title>
-  <link rel="stylesheet" href="assets/idn-style.css" />
+  <link rel="stylesheet" href="assets/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body oncontextmenu="return false">
   <div class="live-wrapper animate-fade">
+    <!-- Avatar kiri atas -->
+    <div class="top-bar">
+      <img src="assets/avatar.png" alt="Avatar" class="avatar" />
+      <button class="btn-control" onclick="logout()">⏻ Logout</button>
+    </div>
+
+    <!-- Video player -->
     <video id="video" class="live-video" playsinline controls></video>
 
-    <!-- Overlay Preloader -->
+    <!-- Preloader -->
     <div id="preloader" class="preloader">
       <div class="loader"></div>
       <p class="loading-text">Menunggu live dimulai...</p>
     </div>
-
-    <!-- Overlay Controls -->
-    <div class="overlay-controls">
-      <button class="btn-control" onclick="logout()">⏻ Logout</button>
-      <button class="btn-control" onclick="toggleFullscreen()">⛶</button>
-    </div>
   </div>
 
-  <script src="assets/idn-app.js"></script>
-
+  <script src="assets/app.js"></script>
   <script>
-    // 🔒 Block DevTools
-    document.addEventListener("keydown", function (e) {
+    // Anti DevTools
+    document.addEventListener("keydown", function(e) {
       if (
-        e.keyCode === 123 ||
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+        e.keyCode === 123 || 
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
         (e.ctrlKey && e.keyCode === 85)
       ) {
         e.preventDefault();
         return false;
       }
     });
-
-    // 🔒 Tambahan detect DevTools
-    (function() {
-      const element = new Image();
-      Object.defineProperty(element, 'id', {
-        get: function() {
-          document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20%'>Akses diblokir 🚫</h2>";
-        }
-      });
-      console.log(element);
-    })();
   </script>
 </body>
 </html>
