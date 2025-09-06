@@ -6,7 +6,7 @@
   <title>Login Token - WProject</title>
   <link rel="stylesheet" href="assets/style.css" />
 </head>
-<body>
+<body oncontextmenu="return false">
   <div class="login-wrapper">
     <div class="login-card animate-fade">
       <h2>Masuk dengan Token</h2>
@@ -17,13 +17,18 @@
     </div>
   </div>
 
+  <script src="assets/app.js"></script>
+
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const token = document.getElementById("tokenInput").value.trim();
-      if (token) {
-        localStorage.setItem("token", token);
-        window.location.href = "watch.html";
+    // 🔒 Blok DevTools shortcut
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+        (e.ctrlKey && e.keyCode === 85)
+      ) {
+        e.preventDefault();
+        return false;
       }
     });
   </script>

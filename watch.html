@@ -3,23 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WProject Streaming</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <title>WProject Live</title>
+  <link rel="stylesheet" href="assets/idn-style.css" />
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body>
-  <div class="player-container animate-fade">
-    <video id="video" class="video-player" controls playsinline></video>
+<body oncontextmenu="return false">
+  <div class="live-wrapper animate-fade">
+    <video id="video" class="live-video" playsinline controls></video>
 
-    <div id="spinner" class="spinner">
+    <!-- Overlay Preloader -->
+    <div id="preloader" class="preloader">
       <div class="loader"></div>
+      <p class="loading-text">Menunggu live dimulai...</p>
     </div>
 
-    <div class="controls">
-      <button class="btn-logout" onclick="logout()">Logout</button>
+    <!-- Overlay Controls -->
+    <div class="overlay-controls">
+      <button class="btn-control" onclick="logout()">⏻ Logout</button>
+      <button class="btn-control" onclick="toggleFullscreen()">⛶</button>
     </div>
   </div>
 
-  <script src="assets/app.js"></script>
+  <script src="assets/idn-app.js"></script>
+
+  <script>
+    // 🔒 Block DevTools
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+        (e.ctrlKey && e.keyCode === 85)
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // 🔒 Tambahan detect DevTools
+    (function() {
+      const element = new Image();
+      Object.defineProperty(element, 'id', {
+        get: function() {
+          document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20%'>Akses diblokir 🚫</h2>";
+        }
+      });
+      console.log(element);
+    })();
+  </script>
 </body>
 </html>
