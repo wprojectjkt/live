@@ -2,17 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WProject - Watch</title>
+  <title>WProject - Live</title>
   <link rel="stylesheet" href="assets/style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script defer src="assets/app.js"></script>
 </head>
-<body>
-  <div class="player-container">
-    <video id="video" controls autoplay></video>
-    <div class="player-actions">
-      <button class="btn logout" onclick="logout()">Logout</button>
+<body class="live-body">
+  <header class="live-header">
+    <div class="creator-info">
+      <img src="https://i.pravatar.cc/40" alt="Creator" class="creator-avatar">
+      <span class="creator-name">WProject Live</span>
     </div>
-  </div>
+    <div class="viewer-count">👁 124 penonton</div>
+  </header>
+
+  <main class="live-player">
+    <video id="video" controls autoplay></video>
+    <div class="resolution-select">
+      <label for="quality">Resolusi:</label>
+      <select id="quality" onchange="changeQuality(this.value)">
+        <option value="360">360p</option>
+        <option value="480">480p</option>
+        <option value="720" selected>720p</option>
+        <option value="1080">1080p</option>
+      </select>
+    </div>
+  </main>
+
+  <footer class="live-footer">
+    <button class="btn logout" onclick="logout()">Keluar</button>
+  </footer>
 </body>
 </html>

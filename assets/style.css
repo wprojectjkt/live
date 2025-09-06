@@ -1,95 +1,17 @@
-/* Global */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+.resolution-select {
+  margin-top: 15px;
   color: #fff;
-  height: 100vh;
+  font-size: 0.9rem;
   display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 10px;
 }
 
-/* Login */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.login-card {
-  background: rgba(0,0,0,0.8);
-  padding: 40px;
-  border-radius: 16px;
-  text-align: center;
-  width: 350px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-  animation: fadeIn 0.6s ease-in-out;
-}
-
-.login-card h1 {
-  margin-bottom: 15px;
-  font-size: 2rem;
-}
-
-.login-card p {
-  margin-bottom: 20px;
-  opacity: 0.8;
-}
-
-.login-card input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
+.resolution-select select {
+  padding: 6px 10px;
+  border-radius: 6px;
   border: none;
-  margin-bottom: 15px;
-  font-size: 1rem;
-}
-
-.btn {
-  background: #e50914;
+  outline: none;
+  background: #222;
   color: #fff;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.btn:hover { background: #f40612; }
-
-/* Player */
-.player-container {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: black;
-}
-
-video {
-  width: 90%;
-  max-width: 900px;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.8);
-}
-
-.player-actions {
-  margin-top: 20px;
-}
-
-.logout {
-  background: #444;
-}
-.logout:hover {
-  background: #666;
-}
-
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
