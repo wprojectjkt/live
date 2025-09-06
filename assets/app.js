@@ -57,7 +57,12 @@ function initPlayer(quality = "auto") {
 
   if (Hls.isSupported()) {
     if (hls) hls.destroy();
-    hls = new Hls();
+    hls = new Hls({
+      maxBufferLength: 10,        // buffer 10 detik
+      liveSyncDuration: 5,        // sinkronisasi live lebih halus
+      enableWorker: true,         // lebih ringan di browser
+      lowLatencyMode: true        // kalau server support LL-HLS
+    });
     hls.loadSource(src);
     hls.attachMedia(video);
 
