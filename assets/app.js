@@ -48,26 +48,48 @@ function showSpinner(show) {
 }
 
 // === INIT PLAYER ===
-function initPlayer(quality = "auto") {
-  const base = "https://stream.wproject.web.id/hls/teststream_master";
-  const src = (quality === "auto") ? `${base}.m3u8` : `${base}_${quality}.m3u8`;
-
+function initPlayer() {
+  const src = "https://stream.wproject.web.id/hls/teststream_master.m3u8";
   video = document.getElementById("video");
   showSpinner(true);
 
   if (Hls.isSupported()) {
     if (hls) hls.destroy();
     hls = new Hls({
-      maxBufferLength: 10,        // buffer 10 detik
-      liveSyncDuration: 5,        // sinkronisasi live lebih halus
-      enableWorker: true,         // lebih ringan di browser
-      lowLatencyMode: true        // kalau server support LL-HLS
+      maxBufferLength: 10,
+      liveSyncDuration: 5,
+      enableWorker: true,
+      lowLatencyMode: true
     });
     hls.loadSource(src);
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
       video.play();
+
+      // ✅ Buat dropdown resolusi manual
+      const qualitySelect = document.getElementById("qualitySelect");
+      if (qualitySelect) {
+        qualitySelect.innerHTML = "";
+
+        // Tambahkan opsi AUTO
+        const autoOption = document.createElement("option");
+        autoOption.value = -1;
+        autoOption.text = "Auto";
+        qualitySelect.appendChild(autoOption);
+
+        // Tambahkan resolusi dari manifest
+        hls.levels.forEach((level, i) => {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = `${level.height}p`;
+          qualitySelect.appendChild(option);
+        });
+
+        qualitySelect.onchange = () => {
+          hls.currentLevel = parseInt(qualitySelect.value);
+        };
+      }
     });
 
     hls.on(Hls.Events.FRAG_LOADED, () => {
@@ -83,6 +105,7 @@ function initPlayer(quality = "auto") {
     video.oncanplay = () => showSpinner(false);
   }
 }
+
 
 // === CHANGE QUALITY MANUAL ===
 function changeQuality(q) {
