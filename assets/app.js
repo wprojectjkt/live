@@ -50,7 +50,7 @@ function showSpinner(show) {
 // === INIT PLAYER ===
 function initPlayer(quality = "auto") {
   const base = "https://stream.wproject.web.id/hls/teststream_master";
-  const src = (quality === "auto") ? `${base}.m3u8` : `${base}_${quality}p.m3u8`;
+  const src = (quality === "auto") ? `${base}.m3u8` : `${base}_${quality}.m3u8`;
 
   video = document.getElementById("video");
   showSpinner(true);
