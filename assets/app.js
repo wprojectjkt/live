@@ -1,4 +1,4 @@
-const API_URL = "http://bot.wproject.web.id/api";
+const API_URL = "https://bot.wproject.web.id/api";
 let hls, video;
 
 function getFingerprint() {
