@@ -14,7 +14,7 @@
 
     <div id="controls">
       <label for="quality">Kualitas:</label>
-      <select id="quality" disabled>
+      <select id="quality">
         <option value="auto">Auto</option>
       </select>
       <button id="logout-btn">Logout</button>
@@ -48,56 +48,73 @@
           return;
         }
 
-        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
-        if (!videoSrc) {
+        const masterUrl = data.stream_url || localStorage.getItem("stream_url");
+        if (!masterUrl) {
           statusEl.textContent = "⚠️ Tidak ada sumber video.";
           return;
         }
 
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          hls.loadSource(videoSrc);
-          hls.attachMedia(videoEl);
-
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            statusEl.textContent = "🎬 Streaming dimulai.";
-            videoEl.play();
-
-            // Isi daftar kualitas
-            const levels = hls.levels;
-            qualitySelect.innerHTML = '<option value="auto">Auto</option>';
-            levels.forEach((lvl, i) => {
-              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
-              const opt = document.createElement("option");
-              opt.value = i;
-              opt.textContent = label;
-              qualitySelect.appendChild(opt);
-            });
-            qualitySelect.disabled = false;
-
-            // Ganti kualitas manual
-            qualitySelect.addEventListener("change", () => {
-              const value = qualitySelect.value;
-              if (value === "auto") {
-                hls.currentLevel = -1; // kembali ke auto
-              } else {
-                hls.currentLevel = parseInt(value);
-              }
-            });
-          });
-        } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-          videoEl.src = videoSrc;
-          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
-          statusEl.textContent = "🎬 Streaming dimulai.";
-        } else {
-          statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
+        // baca master playlist
+        const masterText = await fetch(masterUrl).then(r => r.text());
+        const lines = masterText.split("\n");
+        const variants = [];
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].startsWith("#EXT-X-STREAM-INF")) {
+            const resMatch = lines[i].match(/RESOLUTION=(\d+x\d+)/);
+            const bwMatch = lines[i].match(/BANDWIDTH=(\d+)/);
+            const resolution = resMatch ? resMatch[1] : "unknown";
+            const bandwidth = bwMatch ? (parseInt(bwMatch[1]) / 1000) + " kbps" : "";
+            const url = lines[i + 1].trim();
+            variants.push({ resolution, bandwidth, url });
+          }
         }
+
+        // isi dropdown
+        qualitySelect.innerHTML = `<option value="auto">Auto</option>`;
+        variants.forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = v.url;
+          opt.textContent = `${v.resolution} (${v.bandwidth})`;
+          qualitySelect.appendChild(opt);
+        });
+
+        // fungsi untuk memutar video
+        function playSource(src) {
+          if (Hls.isSupported()) {
+            if (window.hls) {
+              window.hls.destroy();
+            }
+            const hls = new Hls();
+            hls.loadSource(src);
+            hls.attachMedia(videoEl);
+            window.hls = hls;
+          } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+            videoEl.src = src;
+          }
+        }
+
+        // mulai mode auto (master)
+        playSource(masterUrl);
+        statusEl.textContent = "🎬 Streaming dimulai.";
+
+        // ganti resolusi manual
+        qualitySelect.addEventListener("change", () => {
+          const value = qualitySelect.value;
+          if (value === "auto") playSource(masterUrl);
+          else {
+            // buat URL absolut (kalau path relatif)
+            const newUrl = value.startsWith("http")
+              ? value
+              : new URL(value, masterUrl).href;
+            playSource(newUrl);
+          }
+        });
       } catch (err) {
+        console.error(err);
         statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
-    // tombol logout
     document.getElementById("logout-btn").addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "index.html";
