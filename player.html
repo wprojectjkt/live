@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WProject Stream Player</title>
   <link rel="stylesheet" href="style.css">
@@ -10,50 +10,50 @@
 <body>
   <div class="container">
     <h2>🎥 WProject Streaming</h2>
-
     <div id="status" class="status">Memvalidasi token...</div>
 
     <div id="player-container" style="display:none;">
       <video id="video" controls autoplay></video>
-
       <div class="controls">
         <label for="resolution">Resolusi:</label>
         <select id="resolution">
+          <option value="stream">Auto</option>
           <option value="1080p">1080p</option>
           <option value="720p">720p</option>
           <option value="480p">480p</option>
-          <option value="stream">Auto</option>
         </select>
-
         <button id="logout">Logout</button>
       </div>
     </div>
   </div>
 
   <script>
-    const statusEl = document.getElementById('status');
-    const playerContainer = document.getElementById('player-container');
-    const video = document.getElementById('video');
-    const logoutBtn = document.getElementById('logout');
-    const resolutionSelect = document.getElementById('resolution');
+    const statusEl = document.getElementById("status");
+    const playerContainer = document.getElementById("player-container");
+    const video = document.getElementById("video");
+    const resolutionSelect = document.getElementById("resolution");
+    const logoutBtn = document.getElementById("logout");
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
+
     if (!token) {
-      statusEl.textContent = "Token tidak ditemukan. Silakan login.";
+      statusEl.textContent = "Token tidak ditemukan. Silakan login terlebih dahulu.";
     } else {
       validateToken(token);
     }
 
     function validateToken(token) {
-      fetch(`https://stream-api.wproject.web.id/api/check?token=${token}`)
+      statusEl.textContent = "Memvalidasi token...";
+      fetch(`https://bot.wproject.web.id/api/check?token=${token}`)
         .then(res => res.json())
         .then(data => {
           if (data.valid) {
-            statusEl.style.display = 'none';
-            playerContainer.style.display = 'block';
-            startPlayer(data.stream_url, resolutionSelect.value);
+            statusEl.style.display = "none";
+            playerContainer.style.display = "block";
+            startPlayer(data.stream_url, "stream");
           } else {
-            statusEl.textContent = "Token tidak valid.";
+            statusEl.textContent = "Token tidak valid atau sudah digunakan.";
+            setTimeout(() => (window.location.href = "index.html"), 2000);
           }
         })
         .catch(() => {
@@ -61,52 +61,63 @@
         });
     }
 
+    let hls;
     function startPlayer(baseUrl, quality) {
-      const hlsUrl = `${baseUrl}/live/${quality}/index.m3u8`;
+      const hlsUrl = `${baseUrl.replace(/\/$/, '')}/live/${quality}/index.m3u8`;
+      console.log("▶ Memutar:", hlsUrl);
 
+      if (hls) hls.destroy();
       if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: false,
-          liveSyncDuration: 10,
-          liveMaxLatencyDuration: 30,
+        hls = new Hls({
+          maxBufferLength: 30,
+          liveSyncDuration: 15,
+          liveMaxLatencyDuration: 60,
           manifestLoadingTimeOut: 20000,
         });
-
         hls.loadSource(hlsUrl);
         hls.attachMedia(video);
 
-        hls.on(Hls.Events.ERROR, function (event, data) {
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play();
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                console.warn("Kesalahan jaringan, mencoba reconnect...");
-                statusEl.textContent = "Kesalahan koneksi, mencoba memulihkan...";
+                statusEl.style.display = "block";
+                statusEl.textContent = "⚠️ Jaringan terputus, mencoba memulihkan...";
                 hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
-                console.warn("Kesalahan media, memulihkan...");
+                statusEl.style.display = "block";
+                statusEl.textContent = "⚠️ Kesalahan media, memulihkan...";
                 hls.recoverMediaError();
                 break;
               default:
-                console.error("Kesalahan fatal:", data);
                 hls.destroy();
+                statusEl.textContent = "❌ Gagal memuat stream.";
                 break;
             }
           }
         });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+
+        hls.on(Hls.Events.LEVEL_LOADED, () => {
+          statusEl.style.display = "none";
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = hlsUrl;
       }
     }
 
-    resolutionSelect.addEventListener('change', () => {
-      startPlayer('https://stream.wproject.web.id', resolutionSelect.value);
+    resolutionSelect.addEventListener("change", () => {
+      const selected = resolutionSelect.value;
+      startPlayer("https://stream.wproject.web.id", selected);
     });
 
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('token');
-      window.location.href = 'index.html';
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
     });
   </script>
 </body>
