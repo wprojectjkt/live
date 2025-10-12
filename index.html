@@ -1,63 +1,70 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎥 WProject Streaming</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject Stream - Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🎥 WProject Streaming</h1>
+    <h1>🔑 Masukkan Token Akses</h1>
     <form id="token-form">
-      <label for="token-input">Masukkan Token Akses:</label>
-      <div class="input-group">
-        <input type="text" id="token-input" placeholder="Token kamu..." required />
-        <button type="button" id="paste-btn">📋 Paste</button>
-      </div>
-      <button type="submit" id="submit-btn">Login</button>
+      <input type="text" id="token-input" placeholder="Masukkan Token" required>
+      <button type="button" id="paste-btn">📋 Paste Token</button>
+      <button type="submit">Masuk</button>
     </form>
-    <p id="status-message"></p>
+    <p id="status" class="hidden"></p>
   </div>
 
   <script>
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.onkeydown = e => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
-        e.preventDefault();
-      }
-    };
-
-    const form = document.getElementById("token-form");
-    const input = document.getElementById("token-input");
-    const statusMsg = document.getElementById("status-message");
-    const pasteBtn = document.getElementById("paste-btn");
-
-    pasteBtn.addEventListener("click", async () => {
+    // Tombol paste dari clipboard
+    document.getElementById("paste-btn").addEventListener("click", async () => {
       try {
         const text = await navigator.clipboard.readText();
-        input.value = text.trim();
+        document.getElementById("token-input").value = text.trim();
       } catch {
-        alert("Gagal paste. Izinkan akses clipboard.");
+        alert("⚠️ Tidak bisa membaca clipboard. Izinkan akses clipboard di browser.");
       }
     });
 
-    form.addEventListener("submit", async (e) => {
+    // Submit form
+    document.getElementById("token-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const token = input.value.trim();
-      statusMsg.textContent = "🔄 Memeriksa token...";
+      const token = document.getElementById("token-input").value.trim();
+      const statusEl = document.getElementById("status");
+      if (!token) return alert("Masukkan token terlebih dahulu!");
+
+      statusEl.textContent = "🔍 Memeriksa token...";
+      statusEl.classList.remove("hidden");
+
       try {
         const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
         const data = await res.json();
+
         if (data.valid) {
-          localStorage.setItem("wproject_token", token);
+          statusEl.textContent = "✅ Token valid, membuka player...";
+          localStorage.setItem("stream_token", token);
+          localStorage.setItem("stream_url", data.stream_url);
           window.location.href = "player.html";
         } else {
-          statusMsg.textContent = "❌ Token tidak valid atau sedang digunakan.";
+          let msg = "❌ Token tidak valid.";
+          if (data.error === "token_in_use") msg = "⚠️ Token sedang dipakai di perangkat lain.";
+          statusEl.textContent = msg;
         }
-      } catch {
-        statusMsg.textContent = "⚠️ Gagal terhubung ke server.";
+      } catch (err) {
+        statusEl.textContent = "⚠️ Gagal menghubungi server token.";
       }
+    });
+
+    // Proteksi ringan (tidak ganggu fetch)
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+      ) e.preventDefault();
     });
   </script>
 </body>
