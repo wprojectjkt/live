@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎥 wProject Live Player</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>📡 wProject Live Stream</h2>
+    <video id="player" controls autoplay></video>
+    <p id="info"></p>
+    <button id="logout">🔓 Keluar</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('stream_token');
+    const url = window.location.hash.substring(1);
+    const video = document.getElementById('player');
+    const info = document.getElementById('info');
+
+    if (!token) {
+      window.location.href = './index.html';
+    } else {
+      info.innerText = "Streaming dari: " + url;
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+      }
+    }
+
+    document.getElementById('logout').addEventListener('click', async () => {
+      await fetch(`https://bot.wproject.web.id/api/logout?token=${token}`);
+      localStorage.removeItem('stream_token');
+      window.location.href = './index.html';
+    });
+  </script>
+</body>
+</html>
