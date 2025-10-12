@@ -3,41 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>wProject Stream Access</title>
+  <title>WProject Stream - Login</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🔐 Masukkan Token Akses</h1>
-    <p>Token didapat dari bot Telegram @WProjectBot</p>
-
-    <input id="token" type="text" placeholder="Masukkan token..." autofocus>
-    <button id="check">Verifikasi</button>
-    <p id="status"></p>
+    <h1>🔒 Masukkan Token Akses</h1>
+    <form id="token-form">
+      <input type="text" id="token-input" placeholder="Masukkan Token" required>
+      <button type="button" id="paste-btn">📋 Paste Token</button>
+      <button type="submit">Masuk</button>
+    </form>
   </div>
 
   <script>
-    document.getElementById('check').addEventListener('click', async () => {
-      const token = document.getElementById('token').value.trim();
-      const status = document.getElementById('status');
-
-      if (!token) return status.innerText = "⚠️ Token belum dimasukkan.";
-
-      status.innerText = "⏳ Memverifikasi token...";
+    // =============== PASTE TOKEN ===============
+    document.getElementById("paste-btn")?.addEventListener("click", async () => {
       try {
-        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
-        const data = await res.json();
-
-        if (data.valid) {
-          localStorage.setItem('stream_token', token);
-          window.location.href = `./player.html#${data.stream_url}`;
-        } else {
-          status.innerText = "❌ Token tidak valid atau sudah digunakan!";
-        }
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById("token-input");
+        input.value = text.trim();
+        input.focus();
       } catch (err) {
-        status.innerText = "⚠️ Gagal terhubung ke server!";
+        alert("⚠️ Gagal membaca clipboard.\nIzinkan akses clipboard di browser Anda.");
       }
     });
+
+    // =============== FORM SUBMIT ===============
+    document.getElementById("token-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const token = document.getElementById("token-input").value.trim();
+      if (!token) return alert("Masukkan token terlebih dahulu!");
+
+      // Redirect ke player dengan query token
+      window.location.href = `player.html?token=${encodeURIComponent(token)}`;
+    });
+
+    // =============== PROTEKSI CLICK KANAN & DEVTOOLS ===============
+    document.addEventListener("contextmenu", (e) => e.preventDefault()); // disable klik kanan
+    document.addEventListener("keydown", (e) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+      ) {
+        e.preventDefault();
+        alert("🚫 Akses dibatasi!");
+      }
+    });
+
+    // Deteksi DevTools dibuka
+    setInterval(() => {
+      const start = performance.now();
+      debugger;
+      const end = performance.now();
+      if (end - start > 100) {
+        document.body.innerHTML =
+          "<h2 style='color:red;text-align:center;margin-top:30vh;'>🚫 Akses DevTools terdeteksi!<br>Silakan tutup dan refresh halaman.</h2>";
+      }
+    }, 1000);
   </script>
 </body>
 </html>
