@@ -9,15 +9,25 @@
 </head>
 <body>
   <div class="container">
+    <h1>🎥 WProject Live</h1>
     <video id="player" controls autoplay playsinline></video>
+
+    <div id="controls">
+      <label for="quality">Kualitas:</label>
+      <select id="quality" disabled>
+        <option value="auto">Auto</option>
+      </select>
+      <button id="logout-btn">Logout</button>
+    </div>
+
     <p id="status"></p>
-    <button id="logout-btn">Logout</button>
   </div>
 
   <script>
     const token = localStorage.getItem("stream_token");
     const statusEl = document.getElementById("status");
     const videoEl = document.getElementById("player");
+    const qualitySelect = document.getElementById("quality");
 
     async function validateAndPlay() {
       if (!token) {
@@ -39,18 +49,49 @@
         }
 
         const videoSrc = data.stream_url || localStorage.getItem("stream_url");
+        if (!videoSrc) {
+          statusEl.textContent = "⚠️ Tidak ada sumber video.";
+          return;
+        }
 
         if (Hls.isSupported()) {
           const hls = new Hls();
           hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            statusEl.textContent = "🎬 Streaming dimulai.";
+            videoEl.play();
+
+            // Isi daftar kualitas
+            const levels = hls.levels;
+            qualitySelect.innerHTML = '<option value="auto">Auto</option>';
+            levels.forEach((lvl, i) => {
+              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
+              const opt = document.createElement("option");
+              opt.value = i;
+              opt.textContent = label;
+              qualitySelect.appendChild(opt);
+            });
+            qualitySelect.disabled = false;
+
+            // Ganti kualitas manual
+            qualitySelect.addEventListener("change", () => {
+              const value = qualitySelect.value;
+              if (value === "auto") {
+                hls.currentLevel = -1; // kembali ke auto
+              } else {
+                hls.currentLevel = parseInt(value);
+              }
+            });
+          });
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
           videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+          statusEl.textContent = "🎬 Streaming dimulai.";
+        } else {
+          statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
         }
-
-        statusEl.textContent = "🎬 Streaming dimulai.";
       } catch (err) {
         statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
