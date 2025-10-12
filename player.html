@@ -1,119 +1,78 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎥 Live Player - WProject</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject Stream Player</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <div class="player-container">
-    <h1>🎬 WProject Live</h1>
-    <video id="video" controls autoplay playsinline></video>
-    <div class="status-bar" id="status">Menghubungkan...</div>
+  <div class="container">
+    <video id="player" controls autoplay playsinline></video>
+    <p id="status"></p>
     <button id="logout-btn">Logout</button>
   </div>
 
   <script>
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.onkeydown = e => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
-        e.preventDefault();
-      }
-    };
-
-    const token = localStorage.getItem("wproject_token");
-    const video = document.getElementById("video");
+    const token = localStorage.getItem("stream_token");
     const statusEl = document.getElementById("status");
-    const logoutBtn = document.getElementById("logout-btn");
+    const videoEl = document.getElementById("player");
 
-    if (!token) {
-      statusEl.textContent = "Token tidak ditemukan. Silakan login.";
-      setTimeout(() => window.location.href = "index.html", 1500);
-    } else {
-      validateToken(token);
-    }
+    async function validateAndPlay() {
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
 
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("wproject_token");
-      window.location.href = "index.html";
-    });
+      statusEl.textContent = "🔍 Memeriksa token...";
 
-    async function validateToken(token) {
-      statusEl.textContent = "🔍 Memvalidasi token...";
       try {
         const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
         const data = await res.json();
-        if (data.valid && data.stream_url) {
-          initPlayer(data.stream_url);
-        } else {
-          statusEl.textContent = "❌ Token tidak valid.";
-          setTimeout(() => window.location.href = "index.html", 2000);
+
+        if (!data.valid) {
+          alert("❌ Token tidak valid. Silakan login ulang.");
+          localStorage.clear();
+          window.location.href = "index.html";
+          return;
         }
-      } catch {
-        statusEl.textContent = "⚠️ Gagal menghubungi server.";
+
+        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
+
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(videoSrc);
+          hls.attachMedia(videoEl);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
+        } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+          videoEl.src = videoSrc;
+          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+        }
+
+        statusEl.textContent = "🎬 Streaming dimulai.";
+      } catch (err) {
+        statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
-    function showStatus(msg, color = "orange") {
-      statusEl.style.color = color;
-      statusEl.textContent = msg;
-    }
+    // tombol logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
 
-    function initPlayer(src) {
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          maxBufferLength: 60,
-          maxBufferSize: 60 * 1000 * 1000,
-          liveSyncDurationCount: 4,
-          liveMaxLatencyDurationCount: 8,
-          startPosition: -1
-        });
-        hls.loadSource(src);
-        hls.attachMedia(video);
+    // proteksi ringan
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+      ) e.preventDefault();
+    });
 
-        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-          const levels = data.levels;
-          if (levels.length > 1) {
-            const select = document.createElement("select");
-            select.id = "quality-select";
-            levels.forEach((lvl, i) => {
-              const opt = document.createElement("option");
-              opt.value = i;
-              opt.text = `${lvl.height}p`;
-              select.appendChild(opt);
-            });
-            select.addEventListener("change", () => {
-              hls.currentLevel = parseInt(select.value);
-            });
-            document.body.insertBefore(select, video.nextSibling);
-          }
-          video.play();
-          showStatus("✅ Terhubung", "green");
-        });
-
-        hls.on(Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            showStatus("Kesalahan koneksi. Memulihkan...", "orange");
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                hls.recoverMediaError();
-                break;
-              default:
-                hls.destroy();
-                initPlayer(src);
-            }
-          }
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-        video.addEventListener("loadedmetadata", () => video.play());
-      }
-    }
+    validateAndPlay();
   </script>
 </body>
 </html>
