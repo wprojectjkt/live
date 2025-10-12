@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wProject Stream Access</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Masukkan Token Akses</h1>
+    <p>Token didapat dari bot Telegram @WProjectBot</p>
+
+    <input id="token" type="text" placeholder="Masukkan token..." autofocus>
+    <button id="check">Verifikasi</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    document.getElementById('check').addEventListener('click', async () => {
+      const token = document.getElementById('token').value.trim();
+      const status = document.getElementById('status');
+
+      if (!token) return status.innerText = "⚠️ Token belum dimasukkan.";
+
+      status.innerText = "⏳ Memverifikasi token...";
+      try {
+        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+        const data = await res.json();
+
+        if (data.valid) {
+          localStorage.setItem('stream_token', token);
+          window.location.href = `./player.html#${data.stream_url}`;
+        } else {
+          status.innerText = "❌ Token tidak valid atau sudah digunakan!";
+        }
+      } catch (err) {
+        status.innerText = "⚠️ Gagal terhubung ke server!";
+      }
+    });
+  </script>
+</body>
+</html>
