@@ -3,65 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Stream - Login</title>
+  <title>WProject Stream Login</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🔒 Masukkan Token Akses</h1>
+    <h1>🔑 Masukkan Token Akses</h1>
     <form id="token-form">
       <input type="text" id="token-input" placeholder="Masukkan Token" required>
       <button type="button" id="paste-btn">📋 Paste Token</button>
       <button type="submit">Masuk</button>
     </form>
+    <p id="status" class="hidden"></p>
   </div>
 
   <script>
-    // =============== PASTE TOKEN ===============
-    document.getElementById("paste-btn")?.addEventListener("click", async () => {
+    // Tombol paste dari clipboard
+    document.getElementById("paste-btn").addEventListener("click", async () => {
       try {
         const text = await navigator.clipboard.readText();
-        const input = document.getElementById("token-input");
-        input.value = text.trim();
-        input.focus();
-      } catch (err) {
-        alert("⚠️ Gagal membaca clipboard.\nIzinkan akses clipboard di browser Anda.");
+        document.getElementById("token-input").value = text.trim();
+      } catch {
+        alert("⚠️ Tidak bisa membaca clipboard. Izinkan akses clipboard browser.");
       }
     });
 
-    // =============== FORM SUBMIT ===============
-    document.getElementById("token-form").addEventListener("submit", (e) => {
+    // Submit form
+    document.getElementById("token-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const token = document.getElementById("token-input").value.trim();
+      const statusEl = document.getElementById("status");
       if (!token) return alert("Masukkan token terlebih dahulu!");
 
-      // Redirect ke player dengan query token
-      window.location.href = `player.html?token=${encodeURIComponent(token)}`;
+      statusEl.textContent = "🔍 Memeriksa token...";
+      statusEl.classList.remove("hidden");
+
+      try {
+        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+        const data = await res.json();
+
+        if (data.valid) {
+          statusEl.textContent = "✅ Token valid, memuat player...";
+          localStorage.setItem("stream_token", token);
+          window.location.href = "player.html";
+        } else {
+          statusEl.textContent = "❌ Token tidak valid.";
+        }
+      } catch (err) {
+        statusEl.textContent = "⚠️ Gagal menghubungi server token.";
+      }
     });
 
-    // =============== PROTEKSI CLICK KANAN & DEVTOOLS ===============
-    document.addEventListener("contextmenu", (e) => e.preventDefault()); // disable klik kanan
-    document.addEventListener("keydown", (e) => {
+    // Proteksi dasar (tidak ganggu JS utama)
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
         (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
-      ) {
-        e.preventDefault();
-        alert("🚫 Akses dibatasi!");
-      }
+      ) e.preventDefault();
     });
-
-    // Deteksi DevTools dibuka
-    setInterval(() => {
-      const start = performance.now();
-      debugger;
-      const end = performance.now();
-      if (end - start > 100) {
-        document.body.innerHTML =
-          "<h2 style='color:red;text-align:center;margin-top:30vh;'>🚫 Akses DevTools terdeteksi!<br>Silakan tutup dan refresh halaman.</h2>";
-      }
-    }, 1000);
   </script>
 </body>
 </html>
