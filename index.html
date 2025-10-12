@@ -1,52 +1,64 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WProject Stream | Login</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎥 WProject Streaming</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body oncontextmenu="return false">
-<div class="container">
-  <h2>🎟️ Masukkan Token</h2>
-  <input type="text" id="token" placeholder="Token anda" />
-  <button onclick="pasteToken()">📋 Paste</button>
-  <button onclick="validate()">🔓 Masuk</button>
-</div>
+<body>
+  <div class="container">
+    <h1>🎥 WProject Streaming</h1>
+    <form id="token-form">
+      <label for="token-input">Masukkan Token Akses:</label>
+      <div class="input-group">
+        <input type="text" id="token-input" placeholder="Token kamu..." required />
+        <button type="button" id="paste-btn">📋 Paste</button>
+      </div>
+      <button type="submit" id="submit-btn">Login</button>
+    </form>
+    <p id="status-message"></p>
+  </div>
 
-<script>
-// Anti devtools
-document.addEventListener('keydown', e => {
-  if (e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
-      (e.ctrlKey && e.key === 'U')) e.preventDefault();
-});
-document.addEventListener('contextmenu', e => e.preventDefault());
+  <script>
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.onkeydown = e => {
+      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) || (e.ctrlKey && e.key === "U")) {
+        e.preventDefault();
+      }
+    };
 
-// Tombol paste clipboard
-function pasteToken() {
-  navigator.clipboard.readText().then(t => {
-    document.getElementById('token').value = t.trim();
-  });
-}
+    const form = document.getElementById("token-form");
+    const input = document.getElementById("token-input");
+    const statusMsg = document.getElementById("status-message");
+    const pasteBtn = document.getElementById("paste-btn");
 
-// Validasi token
-async function validate() {
-  const token = document.getElementById('token').value.trim();
-  if (!token) return alert("Masukkan token terlebih dahulu!");
+    pasteBtn.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        input.value = text.trim();
+      } catch {
+        alert("Gagal paste. Izinkan akses clipboard.");
+      }
+    });
 
-  try {
-    const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
-    const data = await res.json();
-
-    if (!data.valid) return alert("Token tidak valid atau sedang digunakan!");
-
-    localStorage.setItem("wproject_token", token);
-    window.location.href = "player.html";
-  } catch (e) {
-    alert("Tidak bisa menghubungi server token.");
-  }
-}
-</script>
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const token = input.value.trim();
+      statusMsg.textContent = "🔄 Memeriksa token...";
+      try {
+        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+        const data = await res.json();
+        if (data.valid) {
+          localStorage.setItem("wproject_token", token);
+          window.location.href = "player.html";
+        } else {
+          statusMsg.textContent = "❌ Token tidak valid atau sedang digunakan.";
+        }
+      } catch {
+        statusMsg.textContent = "⚠️ Gagal terhubung ke server.";
+      }
+    });
+  </script>
 </body>
 </html>
