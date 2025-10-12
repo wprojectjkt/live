@@ -17,6 +17,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   backdrop-filter: blur(5px);
+  max-width: 400px;
 }
 
 input, button {
@@ -25,6 +26,7 @@ input, button {
   border-radius: 8px;
   border: none;
   outline: none;
+  font-size: 15px;
 }
 
 button {
@@ -47,4 +49,20 @@ button:hover {
 
 .hidden {
   display: none;
+}
+
+video {
+  width: 100%;
+  max-height: 60vh;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+
+#logout-btn {
+  margin-top: 15px;
+  background-color: #dc3545;
+}
+
+#logout-btn:hover {
+  background-color: #c82333;
 }
