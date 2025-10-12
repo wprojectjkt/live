@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Stream Login</title>
+  <title>WProject Stream - Login</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,7 +24,7 @@
         const text = await navigator.clipboard.readText();
         document.getElementById("token-input").value = text.trim();
       } catch {
-        alert("⚠️ Tidak bisa membaca clipboard. Izinkan akses clipboard browser.");
+        alert("⚠️ Tidak bisa membaca clipboard. Izinkan akses clipboard di browser.");
       }
     });
 
@@ -43,18 +43,21 @@
         const data = await res.json();
 
         if (data.valid) {
-          statusEl.textContent = "✅ Token valid, memuat player...";
+          statusEl.textContent = "✅ Token valid, membuka player...";
           localStorage.setItem("stream_token", token);
+          localStorage.setItem("stream_url", data.stream_url);
           window.location.href = "player.html";
         } else {
-          statusEl.textContent = "❌ Token tidak valid.";
+          let msg = "❌ Token tidak valid.";
+          if (data.error === "token_in_use") msg = "⚠️ Token sedang dipakai di perangkat lain.";
+          statusEl.textContent = msg;
         }
       } catch (err) {
         statusEl.textContent = "⚠️ Gagal menghubungi server token.";
       }
     });
 
-    // Proteksi dasar (tidak ganggu JS utama)
+    // Proteksi ringan (tidak ganggu fetch)
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
