@@ -19,34 +19,18 @@ body {
   backdrop-filter: blur(5px);
 }
 
-h1 {
-  margin-bottom: 25px;
-}
-
-#token-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-#token-input {
-  width: 260px;
-  padding: 10px;
+input, button {
+  margin: 8px;
+  padding: 10px 16px;
   border-radius: 8px;
   border: none;
   outline: none;
-  text-align: center;
 }
 
 button {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
   background-color: #0069d9;
   color: white;
   cursor: pointer;
-  transition: 0.3s;
 }
 
 button:hover {
@@ -59,4 +43,8 @@ button:hover {
 
 #paste-btn:hover {
   background-color: #117a8b;
+}
+
+.hidden {
+  display: none;
 }
