@@ -3,37 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WProject Stream | Player</title>
+<title>WProject Stream Player</title>
 <link rel="stylesheet" href="style.css">
 <style>
-video { width: 100%; max-width: 960px; border-radius: 10px; margin-top: 20px; }
-select { margin-top: 10px; padding: 8px; border-radius: 6px; }
+video { width: 90%; max-width: 900px; border-radius: 10px; margin-top: 20px; }
+select, button { padding: 8px; border-radius: 6px; margin: 5px; }
+#status { margin-top: 10px; color: #0f0; font-weight: bold; }
 </style>
 </head>
 <body oncontextmenu="return false">
 <div class="container">
-  <h2>📡 WProject Live</h2>
+  <h2>📡 WProject Live Player</h2>
   <div id="playerBox" style="display:none">
-    <video id="video" controls playsinline></video>
-    <br>
-    <label>Pilih Resolusi: </label>
-    <select id="quality" onchange="changeQuality(this.value)"></select>
+    <video id="video" controls playsinline></video><br>
+    <label>Resolusi:</label>
+    <select id="quality" onchange="changeQuality(this.value)"></select><br>
+    <button onclick="logout()">🚪 Logout</button>
+    <div id="status"></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-// Anti devtools
+// ========== Proteksi dasar ==========
+document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
-  if (e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+  if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
       (e.ctrlKey && e.key === 'U')) e.preventDefault();
 });
-document.addEventListener('contextmenu', e => e.preventDefault());
 
+// ========== Validasi Token ==========
 const token = localStorage.getItem("wproject_token");
 if (!token) {
-  alert("Token tidak ditemukan!");
+  alert("Token tidak ditemukan, silakan login ulang.");
   window.location.href = "index.html";
 }
 
@@ -42,36 +44,34 @@ async function validateToken() {
     const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
     const data = await res.json();
     if (!data.valid) {
-      alert("Token tidak valid!");
-      localStorage.removeItem("wproject_token");
-      window.location.href = "index.html";
+      alert("Token tidak valid atau sedang digunakan di perangkat lain.");
+      logout();
       return;
     }
     initPlayer(data.stream_url);
-  } catch {
-    alert("Gagal validasi token.");
-    window.location.href = "index.html";
+  } catch (err) {
+    showStatus("Gagal validasi token. Coba ulang...", "red");
+    setTimeout(validateToken, 5000);
   }
 }
 
-let hls;
+// ========== Inisialisasi Player ==========
+let hls, reconnectCount = 0;
 function initPlayer(src) {
   const video = document.getElementById("video");
   const select = document.getElementById("quality");
   document.getElementById("playerBox").style.display = "block";
+  showStatus("Terhubung ke server ✅", "lime");
 
   if (Hls.isSupported()) {
     hls = new Hls({
       liveSyncDuration: 10,
       liveMaxLatencyDuration: 60,
-      maxBufferLength: 30,
+      maxBufferLength: 25,
       maxMaxBufferLength: 60,
-      liveDurationInfinity: true,
       enableWorker: true,
-      lowLatencyMode: false,
       backBufferLength: 120,
-      manifestLoadingTimeOut: 10000,
-      fragLoadingTimeOut: 10000,
+      lowLatencyMode: false,
       manifestLoadingMaxRetry: 10,
       fragLoadingMaxRetry: 8,
       fragLoadingRetryDelay: 2000
@@ -87,18 +87,25 @@ function initPlayer(src) {
       video.play();
     });
 
-    // Auto recovery buffering
-    let last = 0;
+    // deteksi stuck / buffering
+    let lastTime = 0;
     setInterval(() => {
-      if (!video.paused && video.currentTime === last) {
-        console.log("⚠️ Player stuck, restart segment load...");
-        hls.startLoad();
+      if (!video.paused && !video.seeking) {
+        if (video.currentTime === lastTime) {
+          reconnectCount++;
+          showStatus(`Reconnecting... percobaan ${reconnectCount}`, "yellow");
+          hls.startLoad();
+        } else {
+          reconnectCount = 0;
+          showStatus("Streaming lancar ✅", "lime");
+        }
+        lastTime = video.currentTime;
       }
-      last = video.currentTime;
-    }, 10000);
+    }, 8000);
 
     hls.on(Hls.Events.ERROR, (_, data) => {
       if (data.fatal) {
+        showStatus("Kesalahan koneksi. Memulihkan...", "orange");
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
           case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
@@ -108,7 +115,6 @@ function initPlayer(src) {
         }
       }
     });
-
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = src;
     video.play();
@@ -116,10 +122,22 @@ function initPlayer(src) {
 }
 
 function changeQuality(v) {
-  if (!hls) return;
-  hls.currentLevel = parseInt(v);
+  if (hls) hls.currentLevel = parseInt(v);
 }
 
+function logout() {
+  localStorage.removeItem("wproject_token");
+  alert("Anda telah logout.");
+  window.location.href = "index.html";
+}
+
+function showStatus(text, color="lime") {
+  const el = document.getElementById("status");
+  el.style.color = color;
+  el.textContent = text;
+}
+
+// Jalankan
 validateToken();
 </script>
 </body>
