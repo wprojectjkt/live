@@ -1,147 +1,126 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Stream Player</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WProject Stream | Player</title>
+<link rel="stylesheet" href="style.css">
+<style>
+video { width: 100%; max-width: 960px; border-radius: 10px; margin-top: 20px; }
+select { margin-top: 10px; padding: 8px; border-radius: 6px; }
+</style>
 </head>
-<body>
-  <div class="container">
-    <h1>🎥 WProject Live</h1>
-
-    <video id="player" controls autoplay playsinline></video>
-
-    <div id="controls">
-      <label for="quality">Kualitas:</label>
-      <select id="quality">
-        <option value="master">Auto</option>
-        <option value="1080p">1080p</option>
-        <option value="720p">720p</option>
-        <option value="480p">480p</option>
-      </select>
-      <button id="logout-btn">Logout</button>
-    </div>
-
-    <p id="status"></p>
+<body oncontextmenu="return false">
+<div class="container">
+  <h2>📡 WProject Live</h2>
+  <div id="playerBox" style="display:none">
+    <video id="video" controls playsinline></video>
+    <br>
+    <label>Pilih Resolusi: </label>
+    <select id="quality" onchange="changeQuality(this.value)"></select>
   </div>
+</div>
 
-  <script>
-    const token = localStorage.getItem("stream_token");
-    const statusEl = document.getElementById("status");
-    const videoEl = document.getElementById("player");
-    const selectEl = document.getElementById("quality");
-    const base = "https://stream.wproject.web.id/live";
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+// Anti devtools
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+      (e.ctrlKey && e.key === 'U')) e.preventDefault();
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
 
-    async function validateToken() {
-      if (!token) return (window.location.href = "index.html");
-      statusEl.textContent = "🔍 Memeriksa token...";
+const token = localStorage.getItem("wproject_token");
+if (!token) {
+  alert("Token tidak ditemukan!");
+  window.location.href = "index.html";
+}
 
-      try {
-        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
-        const data = await res.json();
-
-        if (!data.valid) {
-          alert("❌ Token tidak valid. Silakan login ulang.");
-          localStorage.clear();
-          return (window.location.href = "index.html");
-        }
-
-        // token valid → mulai auto (master)
-        playStream("master");
-      } catch (err) {
-        statusEl.textContent = "⚠️ Gagal memvalidasi token.";
-      }
-    }
-
-    function playStream(resolution) {
-      const src =
-        resolution === "master"
-          ? "https://stream.wproject.web.id/master.m3u8"
-          : `${base}/${resolution}/index.m3u8`;
-
-      const bust = `?t=${Date.now()}`; // cegah cache segmen lama
-      const url = src + bust;
-
-      statusEl.textContent = `▶️ Memutar ${resolution.toUpperCase()}...`;
-
-      if (Hls.isSupported()) {
-        if (window.hls) window.hls.destroy();
-
-        const hls = new Hls({
-          maxBufferLength: 5,
-          maxMaxBufferLength: 10,
-          liveSyncDurationCount: 2,
-          enableWorker: true,
-          fragLoadingTimeOut: 5000,
-          manifestLoadingTimeOut: 5000,
-          manifestLoadingMaxRetry: 10,
-          fragLoadingMaxRetry: 5,
-          fragLoadingRetryDelay: 1000,
-        });
-
-        window.hls = hls;
-
-        hls.loadSource(url);
-        hls.attachMedia(videoEl);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          videoEl.play();
-          statusEl.textContent = "🎬 Streaming dimulai.";
-        });
-
-        // auto recover error agar tidak perlu refresh manual
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                statusEl.textContent = "🔁 Reconnecting...";
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                statusEl.textContent = "⚠️ Memperbaiki media...";
-                hls.recoverMediaError();
-                break;
-              default:
-                statusEl.textContent = "❌ Fatal error, reload...";
-                setTimeout(() => playStream(resolution), 3000);
-                break;
-            }
-          }
-        });
-      } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-        videoEl.src = url;
-        videoEl.addEventListener("loadedmetadata", () => videoEl.play());
-      } else {
-        statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
-      }
-    }
-
-    // Ganti resolusi manual
-    selectEl.addEventListener("change", () => {
-      const value = selectEl.value;
-      playStream(value);
-    });
-
-    // Logout
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.clear();
+async function validateToken() {
+  try {
+    const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+    const data = await res.json();
+    if (!data.valid) {
+      alert("Token tidak valid!");
+      localStorage.removeItem("wproject_token");
       window.location.href = "index.html";
+      return;
+    }
+    initPlayer(data.stream_url);
+  } catch {
+    alert("Gagal validasi token.");
+    window.location.href = "index.html";
+  }
+}
+
+let hls;
+function initPlayer(src) {
+  const video = document.getElementById("video");
+  const select = document.getElementById("quality");
+  document.getElementById("playerBox").style.display = "block";
+
+  if (Hls.isSupported()) {
+    hls = new Hls({
+      liveSyncDuration: 10,
+      liveMaxLatencyDuration: 60,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      liveDurationInfinity: true,
+      enableWorker: true,
+      lowLatencyMode: false,
+      backBufferLength: 120,
+      manifestLoadingTimeOut: 10000,
+      fragLoadingTimeOut: 10000,
+      manifestLoadingMaxRetry: 10,
+      fragLoadingMaxRetry: 8,
+      fragLoadingRetryDelay: 2000
+    });
+    hls.loadSource(src + `?t=${Date.now()}`);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+      select.innerHTML = '<option value="-1">Auto</option>';
+      data.levels.forEach((lvl, i) => {
+        select.innerHTML += `<option value="${i}">${lvl.height}p</option>`;
+      });
+      video.play();
     });
 
-    // Proteksi ringan
-    document.addEventListener("contextmenu", (e) => e.preventDefault());
-    document.addEventListener("keydown", (e) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
-      )
-        e.preventDefault();
+    // Auto recovery buffering
+    let last = 0;
+    setInterval(() => {
+      if (!video.paused && video.currentTime === last) {
+        console.log("⚠️ Player stuck, restart segment load...");
+        hls.startLoad();
+      }
+      last = video.currentTime;
+    }, 10000);
+
+    hls.on(Hls.Events.ERROR, (_, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
+          case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
+          default:
+            hls.destroy();
+            initPlayer(src);
+        }
+      }
     });
 
-    validateToken();
-  </script>
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = src;
+    video.play();
+  }
+}
+
+function changeQuality(v) {
+  if (!hls) return;
+  hls.currentLevel = parseInt(v);
+}
+
+validateToken();
+</script>
 </body>
 </html>
