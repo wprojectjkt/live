@@ -24,7 +24,6 @@
     if (!token) {
       window.location.href = './index.html';
     } else {
-      info.innerText = "Streaming dari: " + url;
       if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(url);
