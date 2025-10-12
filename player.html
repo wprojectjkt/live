@@ -3,40 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎥 wProject Live Player</title>
+  <title>WProject Stream Player</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <div class="container">
-    <h2>📡 wProject Live Stream</h2>
-    <video id="player" controls autoplay></video>
-    <p id="info"></p>
-    <button id="logout">🔓 Keluar</button>
+    <video id="player" controls autoplay playsinline></video>
+    <p id="status"></p>
   </div>
 
   <script>
-    const token = localStorage.getItem('stream_token');
-    const url = window.location.hash.substring(1);
-    const video = document.getElementById('player');
-    const info = document.getElementById('info');
+    const token = localStorage.getItem("stream_token");
+    const statusEl = document.getElementById("status");
 
-    if (!token) {
-      window.location.href = './index.html';
-    } else {
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
+    async function validateToken() {
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+        const data = await res.json();
+        if (!data.valid) {
+          alert("❌ Token tidak valid. Silakan login ulang.");
+          localStorage.removeItem("stream_token");
+          window.location.href = "index.html";
+          return;
+        }
+
+        // Token valid → load stream
+        const video = document.getElementById("player");
+        const videoSrc = "https://stream.wproject.web.id/master.m3u8";
+
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(videoSrc);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = videoSrc;
+          video.addEventListener("loadedmetadata", () => video.play());
+        }
+
+        statusEl.textContent = "🎬 Streaming dimulai.";
+      } catch (err) {
+        statusEl.textContent = "⚠️ Gagal memvalidasi token atau memuat stream.";
       }
     }
 
-    document.getElementById('logout').addEventListener('click', async () => {
-      await fetch(`https://bot.wproject.web.id/api/logout?token=${token}`);
-      localStorage.removeItem('stream_token');
-      window.location.href = './index.html';
+    validateToken();
+
+    // Proteksi ringan
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+      ) e.preventDefault();
     });
   </script>
 </body>
