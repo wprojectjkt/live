@@ -66,3 +66,23 @@ video {
 #logout-btn:hover {
   background-color: #c82333;
 }
+#controls {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#quality {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+label {
+  font-weight: 600;
+}
