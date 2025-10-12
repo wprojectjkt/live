@@ -11,51 +11,58 @@
   <div class="container">
     <video id="player" controls autoplay playsinline></video>
     <p id="status"></p>
+    <button id="logout-btn">Logout</button>
   </div>
 
   <script>
     const token = localStorage.getItem("stream_token");
     const statusEl = document.getElementById("status");
+    const videoEl = document.getElementById("player");
 
-    async function validateToken() {
+    async function validateAndPlay() {
       if (!token) {
         window.location.href = "index.html";
         return;
       }
 
+      statusEl.textContent = "🔍 Memeriksa token...";
+
       try {
         const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
         const data = await res.json();
+
         if (!data.valid) {
           alert("❌ Token tidak valid. Silakan login ulang.");
-          localStorage.removeItem("stream_token");
+          localStorage.clear();
           window.location.href = "index.html";
           return;
         }
 
-        // Token valid → load stream
-        const video = document.getElementById("player");
-        const videoSrc = "https://stream.wproject.web.id/master.m3u8";
+        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
 
         if (Hls.isSupported()) {
           const hls = new Hls();
           hls.loadSource(videoSrc);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = videoSrc;
-          video.addEventListener("loadedmetadata", () => video.play());
+          hls.attachMedia(videoEl);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
+        } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+          videoEl.src = videoSrc;
+          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
         }
 
         statusEl.textContent = "🎬 Streaming dimulai.";
       } catch (err) {
-        statusEl.textContent = "⚠️ Gagal memvalidasi token atau memuat stream.";
+        statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
-    validateToken();
+    // tombol logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
 
-    // Proteksi ringan
+    // proteksi ringan
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
@@ -64,6 +71,8 @@
         (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
       ) e.preventDefault();
     });
+
+    validateAndPlay();
   </script>
 </body>
 </html>
