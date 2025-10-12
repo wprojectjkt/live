@@ -1,55 +1,148 @@
-function playStream(resolution) {
-  const src = resolution === "master"
-    ? "https://stream.wproject.web.id/master.m3u8"
-    : `${base}/${resolution}/index.m3u8`;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject Stream Player</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 WProject Live</h1>
 
-  const bust = `?t=${Date.now()}`; // cegah cache
-  const url = src + bust;
+    <video id="player" controls autoplay playsinline></video>
 
-  statusEl.textContent = `▶️ Memutar ${resolution.toUpperCase()}...`;
+    <div id="controls">
+      <label for="quality">Kualitas:</label>
+      <select id="quality">
+        <option value="master">Auto</option>
+        <option value="1080p">1080p</option>
+        <option value="720p">720p</option>
+        <option value="480p">480p</option>
+        <option value="stream">360p</option>
+      </select>
+      <button id="logout-btn">Logout</button>
+    </div>
 
-  if (Hls.isSupported()) {
-    if (window.hls) window.hls.destroy();
-    const hls = new Hls({
-      maxBufferLength: 5,
-      maxMaxBufferLength: 10,
-      liveSyncDurationCount: 2,
-      enableWorker: true,
-      fragLoadingTimeOut: 5000,
-      manifestLoadingTimeOut: 5000,
-      manifestLoadingMaxRetry: 10,
-      fragLoadingMaxRetry: 5,
-      fragLoadingRetryDelay: 1000,
-    });
-    window.hls = hls;
+    <p id="status"></p>
+  </div>
 
-    hls.loadSource(url);
-    hls.attachMedia(videoEl);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
+  <script>
+    const token = localStorage.getItem("stream_token");
+    const statusEl = document.getElementById("status");
+    const videoEl = document.getElementById("player");
+    const selectEl = document.getElementById("quality");
+    const base = "https://stream.wproject.web.id/live";
 
-    // auto recover bila error
-    hls.on(Hls.Events.ERROR, function (event, data) {
-      if (data.fatal) {
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            statusEl.textContent = "🔁 Reconnecting...";
-            hls.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            statusEl.textContent = "⚠️ Memperbaiki media...";
-            hls.recoverMediaError();
-            break;
-          default:
-            statusEl.textContent = "❌ Fatal error, reload...";
-            setTimeout(() => playStream(resolution), 3000);
-            break;
+    async function validateToken() {
+      if (!token) return (window.location.href = "index.html");
+      statusEl.textContent = "🔍 Memeriksa token...";
+
+      try {
+        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
+        const data = await res.json();
+
+        if (!data.valid) {
+          alert("❌ Token tidak valid. Silakan login ulang.");
+          localStorage.clear();
+          return (window.location.href = "index.html");
         }
+
+        // token valid → mulai auto (master)
+        playStream("master");
+      } catch (err) {
+        statusEl.textContent = "⚠️ Gagal memvalidasi token.";
       }
+    }
+
+    function playStream(resolution) {
+      const src =
+        resolution === "master"
+          ? "https://stream.wproject.web.id/master.m3u8"
+          : `${base}/${resolution}/index.m3u8`;
+
+      const bust = `?t=${Date.now()}`; // cegah cache segmen lama
+      const url = src + bust;
+
+      statusEl.textContent = `▶️ Memutar ${resolution.toUpperCase()}...`;
+
+      if (Hls.isSupported()) {
+        if (window.hls) window.hls.destroy();
+
+        const hls = new Hls({
+          maxBufferLength: 5,
+          maxMaxBufferLength: 10,
+          liveSyncDurationCount: 2,
+          enableWorker: true,
+          fragLoadingTimeOut: 5000,
+          manifestLoadingTimeOut: 5000,
+          manifestLoadingMaxRetry: 10,
+          fragLoadingMaxRetry: 5,
+          fragLoadingRetryDelay: 1000,
+        });
+
+        window.hls = hls;
+
+        hls.loadSource(url);
+        hls.attachMedia(videoEl);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          videoEl.play();
+          statusEl.textContent = "🎬 Streaming dimulai.";
+        });
+
+        // auto recover error agar tidak perlu refresh manual
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                statusEl.textContent = "🔁 Reconnecting...";
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                statusEl.textContent = "⚠️ Memperbaiki media...";
+                hls.recoverMediaError();
+                break;
+              default:
+                statusEl.textContent = "❌ Fatal error, reload...";
+                setTimeout(() => playStream(resolution), 3000);
+                break;
+            }
+          }
+        });
+      } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+        videoEl.src = url;
+        videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+      } else {
+        statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
+      }
+    }
+
+    // Ganti resolusi manual
+    selectEl.addEventListener("change", () => {
+      const value = selectEl.value;
+      playStream(value);
     });
-  } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-    videoEl.src = url;
-    videoEl.addEventListener("loadedmetadata", () => videoEl.play());
-  } else {
-    statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
-  }
-}
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
+
+    // Proteksi ringan
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
+    document.addEventListener("keydown", (e) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+      )
+        e.preventDefault();
+    });
+
+    validateToken();
+  </script>
+</body>
+</html>
