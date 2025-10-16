@@ -55,7 +55,19 @@
         }
 
         if (Hls.isSupported()) {
-          const hls = new Hls();
+          const hls = new Hls({
+            // optimize low latency & fast .ts fetch
+            maxLiveSyncPlaybackRate: 1.5,
+            liveDurationInfinity: true,
+            maxBufferLength: 10,
+            maxMaxBufferLength: 15,
+            maxBufferSize: 20 * 1000 * 1000,
+            lowLatencyMode: true,
+            enableWorker: true,
+            fragLoadingTimeOut: 4000,
+            manifestLoadingTimeOut: 4000,
+          });
+
           hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
 
@@ -63,7 +75,7 @@
             statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
 
-            // Isi daftar kualitas
+            // isi daftar kualitas
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
@@ -75,15 +87,29 @@
             });
             qualitySelect.disabled = false;
 
-            // Ganti kualitas manual
             qualitySelect.addEventListener("change", () => {
               const value = qualitySelect.value;
-              if (value === "auto") {
-                hls.currentLevel = -1; // kembali ke auto
-              } else {
-                hls.currentLevel = parseInt(value);
-              }
+              hls.currentLevel = value === "auto" ? -1 : parseInt(value);
             });
+          });
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  statusEl.textContent = "⚠️ Kesalahan media, memperbaiki...";
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  statusEl.textContent = "❌ Gagal memuat stream.";
+                  hls.destroy();
+                  break;
+              }
+            }
           });
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
@@ -97,13 +123,13 @@
       }
     }
 
-    // tombol logout
+    // logout
     document.getElementById("logout-btn").addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "index.html";
     });
 
-    // proteksi ringan
+    // proteksi ringan (tidak ganggu fungsi)
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
