@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WProject Stream Player</title>
+
+  <!-- Hindari caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
@@ -48,20 +54,21 @@
           return;
         }
 
-        let videoSrc = data.stream_url || localStorage.getItem("stream_url");
-        if (videoSrc && !videoSrc.startsWith("http")) {
-          videoSrc = "https://stream.wproject.web.id/" + videoSrc.replace(/^\/+/, "");
+        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
+        if (!videoSrc) {
+          statusEl.textContent = "⚠️ Tidak ada sumber video.";
+          return;
         }
+
+        // Simpan stream_url supaya tidak fetch ulang setiap kali refresh
+        localStorage.setItem("stream_url", videoSrc);
 
         if (Hls.isSupported()) {
           const hls = new Hls({
-            maxBufferLength: 10,
-            maxMaxBufferLength: 20,
-            liveSyncDuration: 3,
-            liveMaxLatencyDuration: 6,
-            lowLatencyMode: true,
-            backBufferLength: 30,
-            maxBufferSize: 30 * 1000 * 1000,
+            liveSyncDuration: 1,   // sinkronisasi cepat
+            liveMaxLatencyDuration: 3,
+            maxBufferLength: 3,    // kecilin buffer supaya cepat real-time
+            maxMaxBufferLength: 5,
           });
 
           hls.loadSource(videoSrc);
@@ -71,6 +78,7 @@
             statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
 
+            // isi pilihan kualitas
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
@@ -88,10 +96,21 @@
             });
           });
 
-          hls.on(Hls.Events.ERROR, (e, data) => {
+          hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
-              statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
-              hls.startLoad();
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  statusEl.textContent = "❌ Gagal memutar stream.";
+                  hls.destroy();
+                  break;
+              }
             }
           });
 
@@ -103,15 +122,35 @@
           statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
         }
       } catch (err) {
+        console.error(err);
         statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
+    // Tombol logout (versi bersih total)
     document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "index.html";
+      try {
+        // stop video agar koneksi RTMP/HLS terputus
+        videoEl.pause();
+        videoEl.src = "";
+        videoEl.load();
+      } catch (e) {}
+
+      // hapus data token & stream
+      localStorage.removeItem("stream_token");
+      localStorage.removeItem("stream_url");
+      sessionStorage.clear();
+
+      // bersihkan cache HLS
+      if ('caches' in window) {
+        caches.keys().then(names => names.forEach(n => caches.delete(n)));
+      }
+
+      // redirect dengan cache-buster
+      window.location.replace("index.html?logout=" + Date.now());
     });
 
+    // proteksi ringan
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
