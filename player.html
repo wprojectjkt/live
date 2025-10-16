@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Stream Player</title>
+  <title>WProject Live</title>
 
-  <!-- Hindari caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -16,30 +15,20 @@
 <body>
   <div class="container">
     <h1>🎥 WProject Live</h1>
-    <video id="player" controls autoplay playsinline></video>
-
+    <video id="player" autoplay playsinline muted></video>
     <div id="controls">
-      <label for="quality">Kualitas:</label>
-      <select id="quality" disabled>
-        <option value="auto">Auto</option>
-      </select>
       <button id="logout-btn">Logout</button>
     </div>
-
     <p id="status"></p>
   </div>
 
   <script>
     const token = localStorage.getItem("stream_token");
-    const statusEl = document.getElementById("status");
     const videoEl = document.getElementById("player");
-    const qualitySelect = document.getElementById("quality");
+    const statusEl = document.getElementById("status");
 
     async function validateAndPlay() {
-      if (!token) {
-        window.location.href = "index.html";
-        return;
-      }
+      if (!token) return (window.location.href = "index.html");
 
       statusEl.textContent = "🔍 Memeriksa token...";
 
@@ -48,115 +37,58 @@
         const data = await res.json();
 
         if (!data.valid) {
-          alert("❌ Token tidak valid. Silakan login ulang.");
+          alert("❌ Token tidak valid.");
           localStorage.clear();
-          window.location.href = "index.html";
-          return;
+          return (window.location.href = "index.html");
         }
 
-        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
-        if (!videoSrc) {
-          statusEl.textContent = "⚠️ Tidak ada sumber video.";
-          return;
-        }
-
-        // Simpan stream_url supaya tidak fetch ulang setiap kali refresh
-        localStorage.setItem("stream_url", videoSrc);
+        const videoSrc = data.stream_url;
 
         if (Hls.isSupported()) {
           const hls = new Hls({
-            liveSyncDuration: 1,   // sinkronisasi cepat
-            liveMaxLatencyDuration: 3,
-            maxBufferLength: 3,    // kecilin buffer supaya cepat real-time
-            maxMaxBufferLength: 5,
+            liveSyncDuration: 1,
+            liveMaxLatencyDuration: 2,
+            maxBufferLength: 2,
+            lowLatencyMode: true,
+            enableWorker: true,
           });
-
           hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
-
-            // isi pilihan kualitas
-            const levels = hls.levels;
-            qualitySelect.innerHTML = '<option value="auto">Auto</option>';
-            levels.forEach((lvl, i) => {
-              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
-              const opt = document.createElement("option");
-              opt.value = i;
-              opt.textContent = label;
-              qualitySelect.appendChild(opt);
-            });
-            qualitySelect.disabled = false;
-
-            qualitySelect.addEventListener("change", () => {
-              const value = qualitySelect.value;
-              hls.currentLevel = value === "auto" ? -1 : parseInt(value);
-            });
+            statusEl.textContent = "🔴 Live berlangsung...";
           });
 
           hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-              switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
-                  hls.startLoad();
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  hls.recoverMediaError();
-                  break;
-                default:
-                  statusEl.textContent = "❌ Gagal memutar stream.";
-                  hls.destroy();
-                  break;
-              }
-            }
+            if (data.fatal) location.reload();
           });
-
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
           videoEl.addEventListener("loadedmetadata", () => videoEl.play());
-          statusEl.textContent = "🎬 Streaming dimulai.";
-        } else {
-          statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
         }
       } catch (err) {
-        console.error(err);
         statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
-    // Tombol logout (versi bersih total)
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      try {
-        // stop video agar koneksi RTMP/HLS terputus
-        videoEl.pause();
-        videoEl.src = "";
-        videoEl.load();
-      } catch (e) {}
-
-      // hapus data token & stream
-      localStorage.removeItem("stream_token");
-      localStorage.removeItem("stream_url");
-      sessionStorage.clear();
-
-      // bersihkan cache HLS
-      if ('caches' in window) {
-        caches.keys().then(names => names.forEach(n => caches.delete(n)));
-      }
-
-      // redirect dengan cache-buster
-      window.location.replace("index.html?logout=" + Date.now());
+    // Proteksi live-only
+    videoEl.addEventListener("pause", () => videoEl.play());
+    videoEl.addEventListener("seeking", () => {
+      try { videoEl.currentTime = videoEl.duration; } catch {}
     });
 
-    // proteksi ringan
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
+
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
         e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase()))
+        (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && ["U","S"].includes(e.key.toUpperCase()))
       ) e.preventDefault();
     });
 
