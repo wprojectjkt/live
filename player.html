@@ -48,24 +48,20 @@
           return;
         }
 
-        const videoSrc = data.stream_url || localStorage.getItem("stream_url");
-        if (!videoSrc) {
-          statusEl.textContent = "⚠️ Tidak ada sumber video.";
-          return;
+        let videoSrc = data.stream_url || localStorage.getItem("stream_url");
+        if (videoSrc && !videoSrc.startsWith("http")) {
+          videoSrc = "https://stream.wproject.web.id/" + videoSrc.replace(/^\/+/, "");
         }
 
         if (Hls.isSupported()) {
           const hls = new Hls({
-            // optimize low latency & fast .ts fetch
-            maxLiveSyncPlaybackRate: 1.5,
-            liveDurationInfinity: true,
             maxBufferLength: 10,
-            maxMaxBufferLength: 15,
-            maxBufferSize: 20 * 1000 * 1000,
+            maxMaxBufferLength: 20,
+            liveSyncDuration: 3,
+            liveMaxLatencyDuration: 6,
             lowLatencyMode: true,
-            enableWorker: true,
-            fragLoadingTimeOut: 4000,
-            manifestLoadingTimeOut: 4000,
+            backBufferLength: 30,
+            maxBufferSize: 30 * 1000 * 1000,
           });
 
           hls.loadSource(videoSrc);
@@ -75,7 +71,6 @@
             statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
 
-            // isi daftar kualitas
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
@@ -93,24 +88,13 @@
             });
           });
 
-          hls.on(Hls.Events.ERROR, (event, data) => {
+          hls.on(Hls.Events.ERROR, (e, data) => {
             if (data.fatal) {
-              switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
-                  hls.startLoad();
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  statusEl.textContent = "⚠️ Kesalahan media, memperbaiki...";
-                  hls.recoverMediaError();
-                  break;
-                default:
-                  statusEl.textContent = "❌ Gagal memuat stream.";
-                  hls.destroy();
-                  break;
-              }
+              statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
+              hls.startLoad();
             }
           });
+
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
           videoEl.addEventListener("loadedmetadata", () => videoEl.play());
@@ -123,13 +107,11 @@
       }
     }
 
-    // logout
     document.getElementById("logout-btn").addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "index.html";
     });
 
-    // proteksi ringan (tidak ganggu fungsi)
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
