@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WProject Stream Player</title>
 
-  <!-- Hindari caching -->
+  <!-- Hindari cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -16,7 +16,7 @@
 <body>
   <div class="container">
     <h1>🎥 WProject Live</h1>
-    <video id="player" controls autoplay playsinline muted></video>
+    <video id="player" controls autoplay playsinline></video>
 
     <div id="controls">
       <label for="quality">Kualitas:</label>
@@ -68,23 +68,33 @@
             liveSyncDurationCount: 1,
             liveMaxLatencyDurationCount: 2,
             maxBufferLength: 2,
-            maxMaxBufferLength: 3,
             liveDurationInfinity: true,
             enableWorker: true,
             startLevel: -1,
           });
 
-          hls.loadSource(videoSrc + "?_t=" + Date.now());
+          hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
-          });
 
-          hls.on(Hls.Events.FRAG_BUFFERED, () => {
-            const diff = videoEl.duration - videoEl.currentTime;
-            if (diff > 3) videoEl.currentTime = videoEl.duration; // jaga tetap di live edge
+            const levels = hls.levels;
+            qualitySelect.innerHTML = '<option value="auto">Auto</option>';
+            levels.forEach((lvl, i) => {
+              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
+              const opt = document.createElement("option");
+              opt.value = i;
+              opt.textContent = label;
+              qualitySelect.appendChild(opt);
+            });
+            qualitySelect.disabled = false;
+
+            qualitySelect.addEventListener("change", () => {
+              const value = qualitySelect.value;
+              hls.currentLevel = value === "auto" ? -1 : parseInt(value);
+            });
           });
 
           hls.on(Hls.Events.ERROR, (event, data) => {
@@ -106,10 +116,8 @@
           });
 
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-          videoEl.src = videoSrc + "?_t=" + Date.now();
-          videoEl.addEventListener("loadedmetadata", () => {
-            videoEl.play();
-          });
+          videoEl.src = videoSrc;
+          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
           statusEl.textContent = "🎬 Streaming dimulai.";
         } else {
           statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
@@ -120,15 +128,16 @@
       }
     }
 
+    // Tombol logout
     document.getElementById("logout-btn").addEventListener("click", () => {
       videoEl.pause();
       videoEl.src = "";
       videoEl.load();
       localStorage.clear();
-      sessionStorage.clear();
-      window.location.replace("index.html?logout=" + Date.now());
+      window.location.href = "index.html";
     });
 
+    // Proteksi
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
