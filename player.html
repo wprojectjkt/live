@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WProject Stream Player</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- Hindari caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
@@ -54,35 +60,56 @@
           return;
         }
 
+        // Simpan stream_url supaya tidak fetch ulang setiap kali refresh
         localStorage.setItem("stream_url", videoSrc);
 
         if (Hls.isSupported()) {
           const hls = new Hls({
-            liveBackBufferLength: 0,   // disable rewind
-            liveSyncDuration: 0.5,     // dekat real-time
-            maxBufferLength: 2,        // kecilin buffer
-            liveDurationInfinity: true
+            liveSyncDuration: 1,   // sinkronisasi cepat
+            liveMaxLatencyDuration: 3,
+            maxBufferLength: 3,    // kecilin buffer supaya cepat real-time
+            maxMaxBufferLength: 5,
           });
 
           hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            statusEl.textContent = "🎬 Live dimulai";
+            statusEl.textContent = "🎬 Streaming dimulai.";
             videoEl.play();
+
+            // isi pilihan kualitas
+            const levels = hls.levels;
+            qualitySelect.innerHTML = '<option value="auto">Auto</option>';
+            levels.forEach((lvl, i) => {
+              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
+              const opt = document.createElement("option");
+              opt.value = i;
+              opt.textContent = label;
+              qualitySelect.appendChild(opt);
+            });
+            qualitySelect.disabled = false;
+
+            qualitySelect.addEventListener("change", () => {
+              const value = qualitySelect.value;
+              hls.currentLevel = value === "auto" ? -1 : parseInt(value);
+            });
           });
 
-          hls.on(Hls.Events.LEVEL_SWITCHED, (e, d) => {
-            const q = hls.levels[d.level];
-            if (q) statusEl.textContent = `📺 ${q.height}p aktif`;
-          });
-
-          hls.on(Hls.Events.ERROR, (e, d) => {
-            if (d.fatal) {
-              switch (d.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
-                case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
-                default: hls.destroy(); break;
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang...";
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  statusEl.textContent = "❌ Gagal memutar stream.";
+                  hls.destroy();
+                  break;
               }
             }
           });
@@ -90,20 +117,40 @@
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
           videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+          statusEl.textContent = "🎬 Streaming dimulai.";
+        } else {
+          statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
         }
-      } catch (e) {
+      } catch (err) {
+        console.error(err);
         statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
     }
 
+    // Tombol logout (versi bersih total)
     document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.clear();
-      videoEl.pause();
-      videoEl.src = "";
-      videoEl.load();
-      window.location.href = "index.html";
+      try {
+        // stop video agar koneksi RTMP/HLS terputus
+        videoEl.pause();
+        videoEl.src = "";
+        videoEl.load();
+      } catch (e) {}
+
+      // hapus data token & stream
+      localStorage.removeItem("stream_token");
+      localStorage.removeItem("stream_url");
+      sessionStorage.clear();
+
+      // bersihkan cache HLS
+      if ('caches' in window) {
+        caches.keys().then(names => names.forEach(n => caches.delete(n)));
+      }
+
+      // redirect dengan cache-buster
+      window.location.replace("index.html?logout=" + Date.now());
     });
 
+    // proteksi ringan
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
