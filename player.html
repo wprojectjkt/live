@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WProject Stream Player</title>
 
-  <!-- Hindari caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -16,9 +15,7 @@
 <body>
   <div class="container">
     <h1>🎥 WProject Live</h1>
-    <!-- Tambahan preload=none dan disablePictureInPicture agar benar2 live -->
-    <video id="player" controls autoplay playsinline preload="none"
-           disablePictureInPicture controlsList="nodownload noplaybackrate"></video>
+    <video id="player" controls autoplay playsinline muted></video>
 
     <div id="controls">
       <label for="quality">Kualitas:</label>
@@ -65,24 +62,32 @@
         localStorage.setItem("stream_url", videoSrc);
 
         if (Hls.isSupported()) {
-          // === KONFIGURASI LOW-LATENCY LIVE ONLY ===
           const hls = new Hls({
-            liveSyncDuration: 1,
-            liveMaxLatencyDuration: 2,
+            // ⚙️ Real-time tuning
+            liveSyncDurationCount: 1,
+            liveMaxLatencyDurationCount: 2,
+            maxLiveSyncPlaybackRate: 1.5,
             maxBufferLength: 2,
             maxMaxBufferLength: 3,
+            liveDurationInfinity: true,
+            startLevel: -1,
             enableWorker: true,
-            lowLatencyMode: true, // fokus realtime
+            lowLatencyMode: true,
+            fragLoadingTimeOut: 4000,
+            manifestLoadingTimeOut: 4000,
+            xhrSetup: function(xhr) {
+              xhr.setRequestHeader("Cache-Control", "no-cache");
+            }
           });
 
-          hls.loadSource(videoSrc);
+          hls.loadSource(videoSrc + '?_t=' + Date.now()); // cache buster
           hls.attachMedia(videoEl);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             statusEl.textContent = "🎬 Streaming dimulai.";
+            videoEl.currentTime = videoEl.duration; // langsung ke live edge
             videoEl.play();
 
-            // isi daftar kualitas (tidak dihapus, tetap aktif)
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
@@ -100,7 +105,12 @@
             });
           });
 
-          // auto-reconnect bila putus
+          hls.on(Hls.Events.FRAG_BUFFERED, () => {
+            // pastikan selalu real-time
+            const diff = videoEl.duration - videoEl.currentTime;
+            if (diff > 3) videoEl.currentTime = videoEl.duration;
+          });
+
           hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
               switch (data.type) {
@@ -120,12 +130,16 @@
           });
 
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-          videoEl.src = videoSrc;
-          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+          videoEl.src = videoSrc + '?_t=' + Date.now();
+          videoEl.addEventListener("loadedmetadata", () => {
+            videoEl.play();
+            videoEl.currentTime = videoEl.duration;
+          });
           statusEl.textContent = "🎬 Streaming dimulai.";
         } else {
           statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
         }
+
       } catch (err) {
         console.error(err);
         statusEl.textContent = "⚠️ Gagal memuat stream.";
@@ -134,24 +148,15 @@
 
     // Tombol logout
     document.getElementById("logout-btn").addEventListener("click", () => {
-      try {
-        videoEl.pause();
-        videoEl.src = "";
-        videoEl.load();
-      } catch (e) {}
-
-      localStorage.removeItem("stream_token");
-      localStorage.removeItem("stream_url");
+      videoEl.pause();
+      videoEl.src = "";
+      videoEl.load();
+      localStorage.clear();
       sessionStorage.clear();
-
-      if ('caches' in window) {
-        caches.keys().then(names => names.forEach(n => caches.delete(n)));
-      }
-
       window.location.replace("index.html?logout=" + Date.now());
     });
 
-    // Proteksi ringan
+    // Proteksi
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
