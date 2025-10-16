@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WProject Live</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WProject Stream Player</title>
 
+  <!-- no caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -15,84 +16,221 @@
 <body>
   <div class="container">
     <h1>🎥 WProject Live</h1>
-    <video id="player" autoplay playsinline muted></video>
+
+    <!-- Jika kamu ingin tombol controls tetap, biarkan element controls ada -->
+    <video id="player" controls autoplay playsinline></video>
+
     <div id="controls">
+      <label for="quality">Kualitas:</label>
+      <select id="quality" disabled><option value="auto">Auto</option></select>
       <button id="logout-btn">Logout</button>
     </div>
+
     <p id="status"></p>
   </div>
 
   <script>
-    const token = localStorage.getItem("stream_token");
-    const videoEl = document.getElementById("player");
-    const statusEl = document.getElementById("status");
+  // ---------- Helpers ----------
+  async function clearCaches() {
+    if (!('caches' in window)) return;
+    try {
+      const names = await caches.keys();
+      await Promise.all(names.map(name => caches.delete(name)));
+    } catch (e) {
+      console.warn("clearCaches:", e);
+    }
+  }
 
-    async function validateAndPlay() {
-      if (!token) return (window.location.href = "index.html");
+  async function unregisterServiceWorkers() {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    } catch (e) {
+      console.warn("unregisterServiceWorkers:", e);
+    }
+  }
 
-      statusEl.textContent = "🔍 Memeriksa token...";
-
-      try {
-        const res = await fetch(`https://bot.wproject.web.id/api/check?token=${token}`);
-        const data = await res.json();
-
-        if (!data.valid) {
-          alert("❌ Token tidak valid.");
-          localStorage.clear();
-          return (window.location.href = "index.html");
+  async function clearIndexedDB() {
+    if (!('indexedDB' in window)) return;
+    try {
+      const DBs = await indexedDB.databases?.(); // modern browsers
+      if (DBs && DBs.length) {
+        for (const db of DBs) {
+          if (db.name) {
+            try { indexedDB.deleteDatabase(db.name); } catch(e){/*ignore*/ }
+          }
         }
-
-        const videoSrc = data.stream_url;
-
-        if (Hls.isSupported()) {
-          const hls = new Hls({
-            liveSyncDuration: 1,
-            liveMaxLatencyDuration: 2,
-            maxBufferLength: 2,
-            lowLatencyMode: true,
-            enableWorker: true,
-          });
-          hls.loadSource(videoSrc);
-          hls.attachMedia(videoEl);
-
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            videoEl.play();
-            statusEl.textContent = "🔴 Live berlangsung...";
-          });
-
-          hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) location.reload();
-          });
-        } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-          videoEl.src = videoSrc;
-          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
-        }
-      } catch (err) {
-        statusEl.textContent = "⚠️ Gagal memuat stream.";
       }
+    } catch(e){
+      // fallback: try known DB names or ignore
+      console.warn("clearIndexedDB:", e);
+    }
+  }
+
+  function deleteAllCookies() {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      // set cookie expiry in the past for all possible paths/domains
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + location.hostname;
+    }
+  }
+
+  // Stop HLS and cleanup instance safely
+  function stopPlayer(hlsInstance, videoEl) {
+    try {
+      if (hlsInstance && typeof hlsInstance.destroy === 'function') hlsInstance.destroy();
+    } catch (e) { console.warn("hls.destroy failed", e); }
+
+    try {
+      videoEl.pause();
+      videoEl.removeAttribute('src');
+      videoEl.load();
+    } catch(e) { console.warn("video stop failed", e); }
+  }
+
+  // Prevent bfcache restoring sensitive state
+  window.addEventListener('pageshow', (ev) => {
+    if (ev.persisted) {
+      // when page is restored from bfcache, force reload to get fresh state
+      window.location.replace('index.html?bfcache=1');
+    }
+  });
+
+
+  // ---------- Main player logic (unchanged login flow) ----------
+  const statusEl = document.getElementById("status");
+  const videoEl = document.getElementById("player");
+  const qualitySelect = document.getElementById("quality");
+
+  let hls = null; // keep reference to destroy on logout
+
+  async function validateAndPlay() {
+    const token = localStorage.getItem("stream_token");
+    if (!token) {
+      // no token -> go to login
+      window.location.replace("index.html");
+      return;
     }
 
-    // Proteksi live-only
-    videoEl.addEventListener("pause", () => videoEl.play());
-    videoEl.addEventListener("seeking", () => {
-      try { videoEl.currentTime = videoEl.duration; } catch {}
-    });
+    statusEl.textContent = "🔍 Memeriksa token...";
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "index.html";
-    });
+    try {
+      const res = await fetch(`https://bot.wproject.web.id/api/check?token=${encodeURIComponent(token)}`, {
+        method: "GET",
+        headers: { "Cache-Control": "no-cache" }
+      });
+      const data = await res.json();
 
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.addEventListener("keydown", e => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && ["U","S"].includes(e.key.toUpperCase()))
-      ) e.preventDefault();
-    });
+      if (!data.valid) {
+        localStorage.removeItem("stream_token");
+        localStorage.removeItem("stream_url");
+        alert("Token tidak valid, silakan login ulang.");
+        window.location.replace("index.html");
+        return;
+      }
 
-    validateAndPlay();
+      let videoSrc = data.stream_url || localStorage.getItem("stream_url") || "https://stream.wproject.web.id/master.m3u8";
+      if (videoSrc && !videoSrc.startsWith("http")) {
+        videoSrc = "https://stream.wproject.web.id/" + videoSrc.replace(/^\/+/, "");
+      }
+      localStorage.setItem("stream_url", videoSrc);
+
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          liveSyncDuration: 1,
+          liveMaxLatencyDuration: 3,
+          maxBufferLength: 3,
+          maxMaxBufferLength: 5,
+          backBufferLength: 0,
+          enableWorker: true
+        });
+        hls.loadSource(videoSrc);
+        hls.attachMedia(videoEl);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          statusEl.textContent = "🎬 Live dimulai";
+          videoEl.play().catch(()=>{});
+          // populate quality
+          const levels = hls.levels || [];
+          qualitySelect.innerHTML = '<option value="auto">Auto</option>';
+          levels.forEach((lvl,i)=>{
+            const label = (lvl.height ? lvl.height + 'p' : i) + ' (' + Math.round((lvl.bitrate||0)/1000) + ' kbps)';
+            const opt = document.createElement('option');
+            opt.value = i; opt.textContent = label;
+            qualitySelect.appendChild(opt);
+          });
+          qualitySelect.disabled = false;
+        });
+
+        hls.on(Hls.Events.ERROR, (evt, data) => {
+          if (data && data.fatal) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              statusEl.textContent = "⚠️ Jaringan bermasalah, reconnect...";
+              try { hls.startLoad(); } catch(e){}
+            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              try { hls.recoverMediaError(); } catch(e){}
+            } else {
+              statusEl.textContent = "❌ Gagal memutar.";
+              try { hls.destroy(); } catch(e){}
+            }
+          }
+        });
+      } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+        videoEl.src = videoSrc;
+        videoEl.addEventListener('loadedmetadata', ()=>videoEl.play());
+        statusEl.textContent = "🎬 Live dimulai";
+      } else {
+        statusEl.textContent = "⚠️ Browser tidak mendukung HLS";
+      }
+
+    } catch (err) {
+      console.error("validateAndPlay error", err);
+      statusEl.textContent = "⚠️ Gagal memuat stream";
+    }
+  }
+
+  // ---------- Robust Logout Handler ----------
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    try {
+      statusEl.textContent = "🔒 Logout... membersihkan sesi";
+      // 1) Stop player and destroy HLS instance
+      stopPlayer(hls, videoEl);
+
+      // 2) Remove tokens from storage (explicit keys)
+      localStorage.removeItem("stream_token");
+      localStorage.removeItem("stream_url");
+      sessionStorage.clear();
+
+      // 3) Clear Cache API & Service Workers & IndexedDB
+      await clearCaches();
+      await unregisterServiceWorkers();
+      await clearIndexedDB();
+
+      // 4) Delete cookies (best effort; cannot delete HttpOnly)
+      deleteAllCookies();
+
+      // 5) small delay to ensure cleanup completes
+      setTimeout(()=> {
+        // final redirect to login page with anti-cache param
+        window.location.replace("index.html?logout=" + Date.now());
+      }, 250);
+    } catch (e) {
+      console.error("logout failed:", e);
+      // fallback redirect
+      window.location.replace("index.html?logout=" + Date.now());
+    }
+  });
+
+  // prevent seeking/pause to behave like live-only (optional)
+  videoEl.addEventListener('pause', ()=>videoEl.play().catch(()=>{}));
+  videoEl.addEventListener('seeking', ()=> { try { videoEl.currentTime = videoEl.duration; } catch(e){} });
+
+  // run
+  validateAndPlay();
   </script>
 </body>
 </html>
