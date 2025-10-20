@@ -67,8 +67,6 @@
           const hls = new Hls({
             liveSyncDuration: 1,   // sinkronisasi cepat
             liveMaxLatencyDuration: 3,
-            maxBufferLength: 3,    // kecilin buffer supaya cepat real-time
-            maxMaxBufferLength: 5,
           });
 
           hls.loadSource(videoSrc);
