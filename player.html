@@ -80,7 +80,7 @@
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
-              const label = `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)`;
+              const label = `${lvl.height}p`;
               const opt = document.createElement("option");
               opt.value = i;
               opt.textContent = label;
