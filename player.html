@@ -1,1 +1,199 @@
-<!DOCTYPE html> <html lang="id"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>WProject Stream Player</title> <!-- Hindari caching --> <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"> <meta http-equiv="Pragma" content="no-cache"> <meta http-equiv="Expires" content="0"> <link rel="stylesheet" href="style.css"> <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script> </head> <body> <div class="container"> <h1>🎥 WProject Live</h1> <video id="player" controls autoplay playsinline></video> <div id="controls"> <label for="quality">Kualitas:</label> <select id="quality" disabled> <option value="auto">Auto</option> </select> <button id="logout-btn">Logout</button> </div> <p id="status"></p> </div> <script> const token = localStorage.getItem("stream_token"); const statusEl = document.getElementById("status"); const videoEl = document.getElementById("player"); const qualitySelect = document.getElementById("quality"); async function validateAndPlay() { if (!token) { window.location.href = "index.html"; return; } statusEl.textContent = "🔍 Memeriksa token..."; try { const res = await fetch(https://bot.wproject.web.id/api/check?token=${token}); const data = await res.json(); if (!data.valid) { alert("❌ Token tidak valid. Silakan login ulang."); localStorage.clear(); window.location.href = "index.html"; return; } const videoSrc = data.stream_url || localStorage.getItem("stream_url"); if (!videoSrc) { statusEl.textContent = "⚠️ Tidak ada sumber video."; return; } // Simpan stream_url supaya tidak fetch ulang setiap kali refresh localStorage.setItem("stream_url", videoSrc); if (Hls.isSupported()) { const hls = new Hls({ maxBufferLength: 3, maxMaxBufferLength: 5, }); hls.loadSource(videoSrc); hls.attachMedia(videoEl); hls.on(Hls.Events.MANIFEST_PARSED, () => { statusEl.textContent = "🎬 Streaming dimulai."; videoEl.play(); // isi pilihan kualitas const levels = hls.levels; qualitySelect.innerHTML = '<option value="auto">Auto</option>'; levels.forEach((lvl, i) => { const label = ${lvl.height}p; const opt = document.createElement("option"); opt.value = i; opt.textContent = label; qualitySelect.appendChild(opt); }); qualitySelect.disabled = false; qualitySelect.addEventListener("change", () => { const value = qualitySelect.value; hls.currentLevel = value === "auto" ? -1 : parseInt(value); }); }); hls.on(Hls.Events.ERROR, (event, data) => { if (data.fatal) { switch (data.type) { case Hls.ErrorTypes.NETWORK_ERROR: statusEl.textContent = "⚠️ Jaringan tidak stabil, mencoba ulang..."; hls.startLoad(); break; case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break; default: statusEl.textContent = "❌ Gagal memutar stream."; hls.destroy(); break; } } }); } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) { videoEl.src = videoSrc; videoEl.addEventListener("loadedmetadata", () => videoEl.play()); statusEl.textContent = "🎬 Streaming dimulai."; } else { statusEl.textContent = "⚠️ Browser tidak mendukung HLS."; } } catch (err) { console.error(err); statusEl.textContent = "⚠️ Gagal memuat stream."; } } // Tombol logout (versi bersih total) document.getElementById("logout-btn").addEventListener("click", () => { try { // stop video agar koneksi RTMP/HLS terputus videoEl.pause(); videoEl.src = ""; videoEl.load(); } catch (e) {} // hapus data token & stream localStorage.removeItem("stream_token"); localStorage.removeItem("stream_url"); sessionStorage.clear(); // bersihkan cache HLS if ('caches' in window) { caches.keys().then(names => names.forEach(n => caches.delete(n))); } // redirect dengan cache-buster window.location.replace("index.html?logout=" + Date.now()); }); // proteksi ringan document.addEventListener("contextmenu", e => e.preventDefault()); document.addEventListener("keydown", e => { if ( e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) || (e.ctrlKey && ["U", "S"].includes(e.key.toUpperCase())) ) e.preventDefault(); }); validateAndPlay(); </script> </body> </html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WProject Stream Player</title>
+
+  <!-- Hindari caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🎥 WProject Live</h1>
+
+    <video id="player" controls autoplay playsinline></video>
+
+    <div id="controls">
+      <label for="quality">Kualitas:</label>
+      <select id="quality" disabled>
+        <option value="auto">Auto</option>
+      </select>
+      <button id="logout-btn">Logout</button>
+    </div>
+
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("stream_token");
+    const statusEl = document.getElementById("status");
+    const videoEl = document.getElementById("player");
+    const qualitySelect = document.getElementById("quality");
+
+    async function validateAndPlay() {
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      statusEl.textContent = "🔍 Memeriksa token...";
+
+      try {
+        const res = await fetch(
+          `https://bot.wproject.web.id/api/check?token=${token}`
+        );
+        const data = await res.json();
+
+        if (!data.valid) {
+          alert("❌ Token tidak valid. Silakan login ulang.");
+          localStorage.clear();
+          window.location.href = "index.html";
+          return;
+        }
+
+        const videoSrc =
+          data.stream_url || localStorage.getItem("stream_url");
+
+        if (!videoSrc) {
+          statusEl.textContent = "⚠️ Tidak ada sumber video.";
+          return;
+        }
+
+        // Simpan stream_url supaya tidak fetch ulang setiap kali refresh
+        localStorage.setItem("stream_url", videoSrc);
+
+        if (Hls.isSupported()) {
+          const hls = new Hls({
+            maxBufferLength: 3,
+            maxMaxBufferLength: 5
+          });
+
+          hls.loadSource(videoSrc);
+          hls.attachMedia(videoEl);
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            statusEl.textContent = "🎬 Streaming dimulai.";
+            videoEl.play();
+
+            // Isi pilihan kualitas
+            const levels = hls.levels;
+            qualitySelect.innerHTML =
+              '<option value="auto">Auto</option>';
+
+            levels.forEach((lvl, i) => {
+              const label = `${lvl.height}p`;
+              const opt = document.createElement("option");
+              opt.value = i;
+              opt.textContent = label;
+              qualitySelect.appendChild(opt);
+            });
+
+            qualitySelect.disabled = false;
+
+            qualitySelect.addEventListener("change", () => {
+              const value = qualitySelect.value;
+              hls.currentLevel =
+                value === "auto" ? -1 : parseInt(value);
+            });
+          });
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  statusEl.textContent =
+                    "⚠️ Jaringan tidak stabil, mencoba ulang...";
+                  hls.startLoad();
+                  break;
+
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  hls.recoverMediaError();
+                  break;
+
+                default:
+                  statusEl.textContent =
+                    "❌ Gagal memutar stream.";
+                  hls.destroy();
+                  break;
+              }
+            }
+          });
+
+        } else if (
+          videoEl.canPlayType("application/vnd.apple.mpegurl")
+        ) {
+          videoEl.src = videoSrc;
+          videoEl.addEventListener(
+            "loadedmetadata",
+            () => videoEl.play()
+          );
+          statusEl.textContent = "🎬 Streaming dimulai.";
+        } else {
+          statusEl.textContent =
+            "⚠️ Browser tidak mendukung HLS.";
+        }
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "⚠️ Gagal memuat stream.";
+      }
+    }
+
+    // Tombol logout (versi bersih total)
+    document
+      .getElementById("logout-btn")
+      .addEventListener("click", () => {
+        try {
+          // Stop video agar koneksi RTMP/HLS terputus
+          videoEl.pause();
+          videoEl.src = "";
+          videoEl.load();
+        } catch (e) {}
+
+        // Hapus data token & stream
+        localStorage.removeItem("stream_token");
+        localStorage.removeItem("stream_url");
+        sessionStorage.clear();
+
+        // Bersihkan cache HLS
+        if ("caches" in window) {
+          caches.keys().then(names =>
+            names.forEach(n => caches.delete(n))
+          );
+        }
+
+        // Redirect dengan cache-buster
+        window.location.replace(
+          "index.html?logout=" + Date.now()
+        );
+      });
+
+    // Proteksi ringan
+    document.addEventListener("contextmenu", e =>
+      e.preventDefault()
+    );
+
+    document.addEventListener("keydown", e => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey &&
+          e.shiftKey &&
+          ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey &&
+          ["U", "S"].includes(e.key.toUpperCase()))
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    validateAndPlay();
+  </script>
+</body>
+</html>
