@@ -16,7 +16,9 @@
 <body>
   <div class="container">
     <h1>🎥 WProject Live</h1>
-    <video id="player" controls autoplay playsinline></video>
+
+    <!-- FIX: muted ditambahkan agar autoplay desktop tidak diblok -->
+    <video id="player" controls autoplay muted playsinline></video>
 
     <div id="controls">
       <label for="quality">Kualitas:</label>
@@ -60,23 +62,28 @@
           return;
         }
 
-        // Simpan stream_url supaya tidak fetch ulang setiap kali refresh
         localStorage.setItem("stream_url", videoSrc);
 
         if (Hls.isSupported()) {
           const hls = new Hls({
+            lowLatencyMode: true,
             maxBufferLength: 3,
-            maxMaxBufferLength: 5,
+            maxMaxBufferLength: 5
           });
 
           hls.loadSource(videoSrc);
           hls.attachMedia(videoEl);
 
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            statusEl.textContent = "🎬 Streaming dimulai.";
-            videoEl.play();
+            statusEl.textContent = "🎬 Streaming siap.";
 
-            // isi pilihan kualitas
+            // FIX: autoplay desktop aman (tanpa mengubah logika)
+            videoEl.muted = true;
+            videoEl.play().catch(() => {
+              statusEl.textContent = "▶️ Klik play untuk mulai streaming";
+            });
+
+            // isi pilihan kualitas (TIDAK DIUBAH)
             const levels = hls.levels;
             qualitySelect.innerHTML = '<option value="auto">Auto</option>';
             levels.forEach((lvl, i) => {
@@ -114,7 +121,10 @@
 
         } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
           videoEl.src = videoSrc;
-          videoEl.addEventListener("loadedmetadata", () => videoEl.play());
+          videoEl.muted = true;
+          videoEl.addEventListener("loadedmetadata", () => {
+            videoEl.play().catch(() => {});
+          });
           statusEl.textContent = "🎬 Streaming dimulai.";
         } else {
           statusEl.textContent = "⚠️ Browser tidak mendukung HLS.";
@@ -125,30 +135,24 @@
       }
     }
 
-    // Tombol logout (versi bersih total)
     document.getElementById("logout-btn").addEventListener("click", () => {
       try {
-        // stop video agar koneksi RTMP/HLS terputus
         videoEl.pause();
         videoEl.src = "";
         videoEl.load();
       } catch (e) {}
 
-      // hapus data token & stream
       localStorage.removeItem("stream_token");
       localStorage.removeItem("stream_url");
       sessionStorage.clear();
 
-      // bersihkan cache HLS
       if ('caches' in window) {
         caches.keys().then(names => names.forEach(n => caches.delete(n)));
       }
 
-      // redirect dengan cache-buster
       window.location.replace("index.html?logout=" + Date.now());
     });
 
-    // proteksi ringan
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", e => {
       if (
